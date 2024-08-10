@@ -166,6 +166,20 @@ if(window.location.hostname == 'testnet.powid.xyz'){
   NODE_HOST = 'http://127.0.0.1:8090';
 }
 
+// Check if the browser is Chrome, Edge, or Firefox
+let browserName;
+if (navigator.userAgent.indexOf("Edg") != -1) {
+    browserName = "Edge";
+} else if (navigator.userAgent.indexOf("Chrome") != -1) {
+    browserName = "Chrome";
+} else if (navigator.userAgent.indexOf("Firefox") != -1) {
+    browserName = "Firefox";
+} else {
+    browserName = "Unknown";
+}
+console.log("Current browser: " + browserName);
+
+
 var handle_reg_this = null;
 var metamask_connect_this = null;
 var handle_list_this = null;
