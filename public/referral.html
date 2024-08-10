@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>PoW ID</title>
-  <link rel="stylesheet" href="/static/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.2/css/bulma.min.css">
 <style>
 </style>
 </head>
@@ -31,6 +31,12 @@
       </div>
     </div>
   </nav>
+
+  <div id="metamask-banner" class="notification is-warning is-light" style="display: none; margin: 1rem;">
+    <button class="delete"></button>
+    <strong>MetaMask not detected!</strong> Please install MetaMask to use this application.
+    <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">Download MetaMask</a>
+  </div>
 
   <section class="hero is-success is-fullheight">
     <div class="hero-body">
@@ -64,12 +70,12 @@
 </body>
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha512-8Q6Y9XnTbOE+JNvjBQwJ2H8S+UV4uA6hiRykhdtIyDYZ2TprdNmWOUaKdGzOhyr4dCyk287OejbPvwl7lrfqrQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js" integrity="sha512-m7nhpWHotpucPI37I4lPovL28Bm2BhAMV8poF3F8Z9oOEZ3jlxGzkgvG0EMt1mVL1xydr1erlBbmN90js/ssUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha512-MOCpqoRoisCTwJ8vQQiciZv0qcpROCidek3GTFS6KTk2+y7munJIlKCVkFCYY+p3ErYFXCjmFjnfTTRSC1OHWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js" integrity="sha512-m7nhpWHotpucPI37I4lPovL28Bm2BhAMV8poF3F8Z9oOEZ3jlxGzkgvG0EMt1mVL1xydr1erlBbmN90js/ssUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.min.js" integrity="sha512-I5GJQRKGdj2miDs8ComgARfiAQiZJo/43YasH22qtweoG+YRXLTDYegxC/vPgw/ERxRzww/F4l4+8UiMmI20sw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script type="module">
-import { ethers } from "/static/ethers-6.11.1.js";
+import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.min.js";
 
 const { createElement: e, Component, Fragment, useState } = React;
 const { createRoot } = ReactDOM;
@@ -131,15 +137,6 @@ if(window.location.hostname == 'testnet.powid.xyz'){
   USDT_CONTRACT = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Mock USDT on harthat
   NODE_HOST = 'http://127.0.0.1:8090';
 }
-
-var metamask_connect_this = null;
-var referral_check_this = null;
-var handle_reg_this = null;
-var handle_list_this = null;
-// var script_model_this = null;
-
-const metamask_connect2 = document.getElementById('metamask_connect2');
-const navbar_menu = document.getElementById('navbarMenu');
 
 class MetamaskConnect extends Component {
   constructor() {
@@ -504,6 +501,17 @@ async function switch_chain() {
 
 }
 
+var metamask_connect_this = null;
+var referral_check_this = null;
+var handle_reg_this = null;
+var handle_list_this = null;
+// var script_model_this = null;
+
+let provider;
+let provider1;
+let whitelist_contract;
+let usdt_contract;
+
 const metamask_connect = createRoot(document.getElementById('metamask_connect'));
 // metamask_connect.render(e(StrictMode, null, e(Button)));
 metamask_connect.render(e(MetamaskConnect));
@@ -517,16 +525,27 @@ handle_reg.render(e(HandleReg));
 const handle_list = createRoot(document.getElementById('handle_list'));
 handle_list.render(e(HandleList));
 
-let provider = new ethers.JsonRpcProvider(RPC_URL);
-let provider1 = new ethers.BrowserProvider(window.ethereum);
-let whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
-let usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+const metamask_connect2 = document.getElementById('metamask_connect2');
+const navbar_menu = document.getElementById('navbarMenu');
 
 metamask_connect2.addEventListener('click', () => {
   metamask_connect_this.login();
 });
 
 window.onload = async () => {
+  if (window.ethereum && window.ethereum.isMetaMask) {
+    console.log("MetaMask is installed");
+  } else {
+    console.log("MetaMask is not installed");
+    document.getElementById('metamask-banner').style.display = 'block';
+    return
+  }
+
+  provider = new ethers.JsonRpcProvider(RPC_URL);
+  provider1 = new ethers.BrowserProvider(window.ethereum);
+  whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
+  usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+
   const chain_id = await window.ethereum.request({method: 'eth_chainId'})
   console.log(chain_id);
   if(chain_id != CHAIN_ID){
@@ -536,28 +555,28 @@ window.onload = async () => {
   if(metamask_connect_this){
     metamask_connect_this.sync();
   }
-}
 
-window.ethereum.on('accountsChanged', (accounts) => {
-  console.log(accounts[0]);
-  metamask_connect_this.sync();
-  handle_list_this.sync();
-});
-
-window.ethereum.on('chainChanged', async (chain_id) => {
-  if(chain_id != CHAIN_ID){
-    switch_chain();
-  }
-
-  provider1 = new ethers.BrowserProvider(window.ethereum);
-  whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
-  usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
-
-  if(metamask_connect_this){
-    console.log(chain_id);
+  window.ethereum.on('accountsChanged', (accounts) => {
+    console.log(accounts[0]);
     metamask_connect_this.sync();
-  }
-});
+    handle_list_this.sync();
+  });
+
+  window.ethereum.on('chainChanged', async (chain_id) => {
+    if(chain_id != CHAIN_ID){
+      switch_chain();
+    }
+
+    provider1 = new ethers.BrowserProvider(window.ethereum);
+    whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
+    usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+
+    if(metamask_connect_this){
+      console.log(chain_id);
+      metamask_connect_this.sync();
+    }
+  });
+}
 
 
 </script>

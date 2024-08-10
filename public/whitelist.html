@@ -133,15 +133,6 @@ if(window.location.hostname == 'testnet.powid.xyz'){
   NODE_HOST = 'http://127.0.0.1:8090';
 }
 
-var metamask_connect_this = null;
-var whitelist_search_this = null;
-var handle_reg_this = null;
-var handle_reg_box = null;
-var handle_list_this = null;
-
-const metamask_connect2 = document.getElementById('metamask_connect2');
-const navbar_menu = document.getElementById('navbarMenu');
-
 class MetamaskConnect extends Component {
   constructor() {
     super();
@@ -523,6 +514,34 @@ async function switch_chain() {
 
 }
 
+var metamask_connect_this = null;
+var whitelist_search_this = null;
+var handle_reg_this = null;
+var handle_reg_box = null;
+var handle_list_this = null;
+
+let provider;
+let provider1;
+let whitelist_contract;
+let usdt_contract;
+
+const metamask_connect = createRoot(document.getElementById('metamask_connect'));
+metamask_connect.render(e(MetamaskConnect));
+
+const whitelist_search = createRoot(document.getElementById('whitelist_search'));
+whitelist_search.render(e(WhitelistClaim));
+
+const handle_reg = createRoot(document.getElementById('handle_reg'));
+handle_reg.render(e(HandleReg));
+
+handle_reg_box = document.getElementById('handle_reg_box');
+
+const handle_list = createRoot(document.getElementById('handle_list'));
+handle_list.render(e(HandleList));
+
+const metamask_connect2 = document.getElementById('metamask_connect2');
+const navbar_menu = document.getElementById('navbarMenu');
+
 metamask_connect2.addEventListener('click', () => {
   metamask_connect_this.login();
 });
@@ -535,25 +554,19 @@ window.onload = async () => {
     document.getElementById('metamask-banner').style.display = 'block';
     return
   }
-  
-  const metamask_connect = createRoot(document.getElementById('metamask_connect'));
-  metamask_connect.render(e(MetamaskConnect));
 
-  const whitelist_search = createRoot(document.getElementById('whitelist_search'));
-  whitelist_search.render(e(WhitelistClaim));
+  if (window.ethereum && window.ethereum.isMetaMask) {
+    console.log("MetaMask is installed");
+  } else {
+    console.log("MetaMask is not installed");
+    document.getElementById('metamask-banner').style.display = 'block';
+    return
+  }
 
-  const handle_reg = createRoot(document.getElementById('handle_reg'));
-  handle_reg.render(e(HandleReg));
-
-  handle_reg_box = document.getElementById('handle_reg_box');
-
-  const handle_list = createRoot(document.getElementById('handle_list'));
-  handle_list.render(e(HandleList));
-
-  let provider = new ethers.JsonRpcProvider(RPC_URL);
-  let provider1 = new ethers.BrowserProvider(window.ethereum);
-  let whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
-  let usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+  provider = new ethers.JsonRpcProvider(RPC_URL);
+  provider1 = new ethers.BrowserProvider(window.ethereum);
+  whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
+  usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
 
   const chain_id = await window.ethereum.request({method: 'eth_chainId'})
   console.log(chain_id);

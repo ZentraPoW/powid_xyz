@@ -148,10 +148,6 @@ let NODE_HOST;
 const TOKEN_NAME = 'ETH';
 const TOKEN_SYMBOL = 'ETH';
 
-let provider1;
-let powid_contract;
-let usdt_contract;
-
 if(window.location.hostname == 'testnet.powid.xyz'){
   CHAIN_ID = '0xa';
   CHAIN_NAME = 'OP';
@@ -189,14 +185,6 @@ if (navigator.userAgent.indexOf("Edg") != -1) {
 }
 console.log("Current browser: " + browserName);
 
-
-var handle_reg_this = null;
-var metamask_connect_this = null;
-var handle_list_this = null;
-var script_model_this = null;
-
-const metamask_connect2 = document.getElementById('metamask_connect2');
-const navbar_menu = document.getElementById('navbarMenu');
 
 class MetamaskConnect extends Component {
   constructor() {
@@ -561,6 +549,18 @@ async function switch_chain() {
   }
 
 }
+
+var handle_reg_this = null;
+var metamask_connect_this = null;
+var handle_list_this = null;
+var script_model_this = null;
+
+let provider1;
+let powid_contract;
+let usdt_contract;
+
+const metamask_connect2 = document.getElementById('metamask_connect2');
+const navbar_menu = document.getElementById('navbarMenu');
 
 metamask_connect2.addEventListener('click', () => {
   metamask_connect_this.login();
