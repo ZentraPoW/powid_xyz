@@ -85,6 +85,12 @@ pre code {
     </div>
   </nav>
 
+  <div id="metamask-banner" class="notification is-warning is-light" style="display: none; margin: 1rem;">
+    <button class="delete"></button>
+    <strong>MetaMask not detected!</strong> Please install MetaMask to use this application.
+    <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">Download MetaMask</a>
+  </div>
+
   <section class="hero is-success is-fullheight">
     <div class="hero-body">
       <div class="container has-text-centered">
@@ -169,13 +175,13 @@ if(window.location.hostname == 'testnet.powid.xyz'){
 // Check if the browser is Chrome, Edge, or Firefox
 let browserName;
 if (navigator.userAgent.indexOf("Edg") != -1) {
-    browserName = "Edge";
+  browserName = "Edge";
 } else if (navigator.userAgent.indexOf("Chrome") != -1) {
-    browserName = "Chrome";
+  browserName = "Chrome";
 } else if (navigator.userAgent.indexOf("Firefox") != -1) {
-    browserName = "Firefox";
+  browserName = "Firefox";
 } else {
-    browserName = "Unknown";
+  browserName = "Unknown";
 }
 console.log("Current browser: " + browserName);
 
@@ -592,6 +598,14 @@ window.ethereum.on('accountsChanged', (accounts) => {
 });
 
 window.ethereum.on('chainChanged', async (chain_id) => {
+  if (window.ethereum && window.ethereum.isMetaMask) {
+    console.log("MetaMask is installed");
+  } else {
+    console.log("MetaMask is not installed");
+    document.getElementById('metamask-banner').style.display = 'block';
+    return
+  }
+
   if(chain_id != CHAIN_ID){
     switch_chain();
   }
