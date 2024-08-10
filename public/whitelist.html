@@ -4,59 +4,6 @@
   <title>PoW ID</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.2/css/bulma.min.css">
 <style>
-code, pre {
-    -moz-osx-font-smoothing: auto;
-    -webkit-font-smoothing: auto;
-    font-family: var(--bulma-code-family);
-}
-
-pre code {
-    background-color: transparent;
-    color: currentColor;
-    font-size: 'Verdana';
-    padding: 0;
-}
-
-.highlight {
-  background-color: black;
-  border-radius: .5em;
-  color: var(--hl-gray-03);
-  font-size: .875em;
-  position: relative;
-  margin: 50px 0 0 0;
-  padding: 1em;
-
-}
-
-.highlight code {
-    background-color: transparent;
-    color: gray;
-    font-size: 1em;
-  line-height: 1.375;
-  word-break: break-word;
-  word-wrap: normal;
-  overflow-x: hidden;
-  padding: 0;
-}
-
-.highlight:hover .bd-copy {
-  opacity: 1;
-}
-
-.bd-copy {
-  opacity: 0;
-  position: absolute;
-  right: .75em;
-  top: .75em;
-  transition-duration: var(--bulma-duration);
-  transition-property: opacity;
-  background-color: #00d1b2;
-  border: none;
-  border-radius: .5em !important;
-  color: var(--hl-background);
-  font-size: 1em;
-  font-weight: var(--bulma-weight-semibold);
-}
 </style>
 </head>
 <body>
@@ -97,10 +44,22 @@ pre code {
         <div class="column is-4 is-offset-4" style="min-width: 420px;">
           <h3 class="title has-text-black">PoW ID</h3>
           <hr class="login-hr">
-          <p class="subtitle has-text-black">Choose Your Handle</p>
+          <p class="subtitle has-text-black">Check if your address is eligible<br/> for claiming handle</p>
           <div class="box">
+            <div id="whitelist_search"></div>
+          </div>
+
+          <div class="box" id="handle_reg_box" style="display: none;">
+            <!-- <figure class="avatar">
+              <img src="https://via.placeholder.com/150">
+            </figure> -->
             <div id="handle_reg"></div>
           </div>
+          <!-- <p class="has-text-grey">
+            <a href="../">Sign Up</a> &nbsp;·&nbsp;
+            <a href="../">Forgot Password</a> &nbsp;·&nbsp;
+            <a href="../">Need Help?</a>
+          </p> -->
           <div id="handle_list" style="margin: 100px 0 0 0;">
           </div>
         </div>
@@ -108,7 +67,6 @@ pre code {
     </div>
   </section>
 
-  <div id="script_model"></div>
 </body>
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha512-8Q6Y9XnTbOE+JNvjBQwJ2H8S+UV4uA6hiRykhdtIyDYZ2TprdNmWOUaKdGzOhyr4dCyk287OejbPvwl7lrfqrQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
@@ -124,9 +82,11 @@ const { createRoot } = ReactDOM;
 
 const HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_';
 
-const PURCHASE_ABI = [
-  "function purchase(bytes memory _handle) public",
-  "function available(bytes memory _handle) public view returns (uint256)"
+const PURCHASE_REFERRAL_ABI = [
+  "function purchase_by_referral(bytes memory _handle, bytes memory _referral) public",
+  "function available(bytes memory _handle) public view returns (uint256)",
+  "function reg_with_whitelist(bytes memory _handle, bytes32[] memory proofs) public",
+  "function whitelist_used(address _addr) public view returns (bool)"
 ];
 
 const USDT_ABI = [
@@ -138,7 +98,7 @@ const USDT_ABI = [
   "function balanceOf(address addr) view returns (uint)"
 ];
 
-let PURCHASE_CONTRACT;
+let PURCHASE_REFERRAL_CONTRACT;
 let POWID_CONTRACT;
 let USDT_CONTRACT;
 let CHAIN_ID;
@@ -152,7 +112,7 @@ if(window.location.hostname == 'testnet.powid.xyz'){
   CHAIN_ID = '0xa';
   CHAIN_NAME = 'OP';
   RPC_URL = 'https://mainnet.optimism.io';
-  PURCHASE_CONTRACT = '0x7CdFB1fbf7d4E314E6c54577781DC7A7B00f2C9d'; // USDT Purchase
+  // PURCHASE_CONTRACT = '0x7CdFB1fbf7d4E314E6c54577781DC7A7B00f2C9d'; // USDT Purchase
   POWID_CONTRACT = '0xa8691bEaEE825Ace9F620Bed657Fa742Db134892';
   USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
   NODE_HOST = 'https://testnode.powid.xyz:8090';
@@ -160,36 +120,24 @@ if(window.location.hostname == 'testnet.powid.xyz'){
   CHAIN_ID = '0xa';
   CHAIN_NAME = 'OP';
   RPC_URL = 'https://mainnet.optimism.io';
-  PURCHASE_CONTRACT = '0xaEa9a28e079CcFD6Be1AB999395265d42cdE315F'; // old PoWIDPurchase
+  // PURCHASE_CONTRACT = '0xaEa9a28e079CcFD6Be1AB999395265d42cdE315F'; // old PoWIDPurchase
   USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
   NODE_HOST = '';
 }else{
   RPC_URL = 'http://127.0.0.1:8545';
   CHAIN_ID = '0x7a69';
   CHAIN_NAME = 'Hardhat';
-  PURCHASE_CONTRACT = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'; // Mock Purchase on harthat 
+  // PURCHASE_CONTRACT = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'; // Mock Purchase on harthat 
+  PURCHASE_REFERRAL_CONTRACT = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'; // Mock PurchaseReferral on harthat 
   USDT_CONTRACT = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Mock USDT on harthat
   NODE_HOST = 'http://127.0.0.1:8090';
 }
 
-// Check if the browser is Chrome, Edge, or Firefox
-let browserName;
-if (navigator.userAgent.indexOf("Edg") != -1) {
-  browserName = "Edge";
-} else if (navigator.userAgent.indexOf("Chrome") != -1) {
-  browserName = "Chrome";
-} else if (navigator.userAgent.indexOf("Firefox") != -1) {
-  browserName = "Firefox";
-} else {
-  browserName = "Unknown";
-}
-console.log("Current browser: " + browserName);
-
-
-var handle_reg_this = null;
 var metamask_connect_this = null;
+var whitelist_search_this = null;
+var handle_reg_this = null;
+var handle_reg_box = null;
 var handle_list_this = null;
-var script_model_this = null;
 
 const metamask_connect2 = document.getElementById('metamask_connect2');
 const navbar_menu = document.getElementById('navbarMenu');
@@ -199,8 +147,7 @@ class MetamaskConnect extends Component {
     super();
     this.state = {
       addr: null,
-      usdt: 0,
-      approved_usdt: 0,
+      msg: ''
     };
     metamask_connect_this = this;
   }
@@ -212,16 +159,30 @@ class MetamaskConnect extends Component {
   async sync() {
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
     if (accounts.length) {
-      console.log(accounts[0]);
       metamask_connect_this.setState({'addr': accounts[0]});
       metamask_connect2.style.display = 'none';
       navbar_menu.style.display = 'block';
 
-      const usdt = await usdt_contract.balanceOf(accounts[0]);
-      metamask_connect_this.setState({'usdt': usdt});
-      const approved = await usdt_contract.allowance(accounts[0], PURCHASE_CONTRACT);
-      metamask_connect_this.setState({'approved_usdt': approved});
+      const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
+      const result = await response.json();
+      console.log(result);
+      if(result['error']){
+        metamask_connect_this.setState({'msg': result['msg']});
+        return
+      }
+
+      const used = await whitelist_contract.whitelist_used(accounts[0]);
+      console.log(used);
+      if(used){
+        metamask_connect_this.setState({'msg': 'The whitelist registration opportunity has been used'});
+        return
+      }
+      metamask_connect_this.setState({'msg': 'In whitelist and available for registration'});
+
       handle_reg_this.setState({'handle_input_readonly': false});
+      handle_reg_box.style.display = 'block';
+    }else{
+      handle_reg_box.style.display = 'none';
     }
   }
 
@@ -243,7 +204,7 @@ class MetamaskConnect extends Component {
 
     // console.log(metamask_connect_this);
     metamask_connect_this.sync();
-    handle_list_this.sync();
+    // handle_list_this.sync();
   }
 
   render() {
@@ -254,7 +215,7 @@ class MetamaskConnect extends Component {
       ),
       e('div',
         { },
-        `USDT: ${ethers.formatUnits(this.state.usdt, 6)} Approved USDT: ${ethers.formatUnits(this.state.approved_usdt, 6)}`
+        `${this.state.msg}`
       ),
     )
   }
@@ -274,16 +235,16 @@ class HandleReg extends Component {
 
   async keyup(e) {
     handle_reg_this.handle = e.target.value;
-    if(e.target.value.length < 5){
-      handle_reg_this.setState({'msg': 'too short'});
+    if(e.target.value.length < 10){
+      handle_reg_this.setState({'msg': 'Too short'});
       return
     }else if(e.target.value.length > 41){
-      handle_reg_this.setState({'msg': 'too long'});
+      handle_reg_this.setState({'msg': 'Too long'});
       return
     }
 
     try{
-      const res = await powid_contract.available(ethers.toUtf8Bytes(e.target.value));
+      const res = await whitelist_contract.available(ethers.toUtf8Bytes(handle_reg_this.handle));
       console.log(res);
     }catch(error){
       console.log(error);
@@ -292,16 +253,16 @@ class HandleReg extends Component {
 
     handle_reg_this.setState({'msg': ''});
 
-    for(const i of e.target.value) {
+    for(const i of handle_reg_this.handle) {
       // console.log('handle', i, HANDLE_LETTERS.indexOf(i));
       if(HANDLE_LETTERS.indexOf(i) == -1){
-        handle_reg_this.setState({'msg': 'invalid letter'});
+        handle_reg_this.setState({'msg': 'Invalid letter'});
         return
       }
     }
-    handle_reg_this.setState({'msg': 'checking availablity'});
+    handle_reg_this.setState({'msg': 'Checking availablity'});
 
-    const res = await powid_contract.available(ethers.toUtf8Bytes(e.target.value));
+    const res = await whitelist_contract.available(ethers.toUtf8Bytes(e.target.value));
     if(res == 0n){
       handle_reg_this.setState({
         'msg': 'not available',
@@ -316,37 +277,44 @@ class HandleReg extends Component {
   }
 
   async click(e) {
-    var price = 0n;
-    if (handle_reg_this.handle.length > 9 && handle_reg_this.handle.length < 42){
-      price = 5n * (10n ** 6n);
-    }else if(handle_reg_this.handle.length > 4 && handle_reg_this.handle.length < 10){
-      price = 2n**ethers.getBigInt(10 - handle_reg_this.handle.length) * 5n * (10n ** 6n);
-    }
-    console.log(price);
-
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
-    const approved = await usdt_contract.allowance(accounts[0], PURCHASE_CONTRACT);
-    console.log(approved);
-    const signer1 = await provider1.getSigner();
-    if(approved < price){
-      // console.log('approve');
-      const usdt_contract1 = new ethers.Contract(USDT_CONTRACT, USDT_ABI, signer1);
-      const res = await usdt_contract1.approve(PURCHASE_CONTRACT, price);
-      // console.log(res);
-      metamask_connect_this.sync();
-      handle_list_this.sync();
+
+    if (accounts.length) {
+      const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
+      const result = await response.json();
+      console.log(result);
+      if(result['error']){
+        whitelist_search_this.setState({'msg': result['msg']});
+        return
+      }
+
+      const used = await whitelist_contract.whitelist_used(accounts[0]);
+      console.log(used);
+      if(used){
+        handle_reg_this.setState({'msg': 'The whitelist registration opportunity has been used'});
+        return
+      }
+
+      try{
+        const res = await whitelist_contract.available(ethers.toUtf8Bytes(handle_reg_this.handle));
+        console.log(res);
+      }catch(error){
+        console.log(error);
+        // console.log(error.reason);
+      }
+
+      const signer1 = await provider1.getSigner();
+      const whitelist_contract1 = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, signer1);
+
+      try{
+        const res = await whitelist_contract1.reg_with_whitelist(ethers.toUtf8Bytes(handle_reg_this.handle), result['proofs']);
+        console.log(res);
+      }catch(error){
+        handle_reg_this.setState({'msg': 'Error'});
+        console.log(error);
+        // console.log(error.reason);
+      }
     }
-
-    const powid_contract1 = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, signer1);
-    const res = await powid_contract1.purchase(ethers.toUtf8Bytes(handle_reg_this.handle));
-    metamask_connect_this.sync();
-    setTimeout(handle_list_this.sync, 3000);
-    setTimeout(handle_list_this.sync, 8000);
-    setTimeout(handle_list_this.sync, 18000);
-  }
-
-  async go_whitelist(e) {
-    location.href = '/whitelist.html';
   }
 
   render() {
@@ -371,13 +339,97 @@ class HandleReg extends Component {
           className: 'button is-link',
           disabled: this.state.reg_btn_disabled,
         },
-        'Purchase Handle'
+        'Claim Handle'
+      ),
+    );
+  }
+}
+
+class WhitelistClaim extends Component {
+  constructor() {
+    super();
+    this.state = {
+      'msg': '',
+      'reg_btn_disabled': true,
+    };
+    whitelist_search_this = this;
+    whitelist_search_this.addr = '';
+  }
+
+  async keyup(e) {
+    whitelist_search_this.addr = e.target.value;
+    if(e.target.value.length != 42){
+      whitelist_search_this.setState({'msg': 'Not match'});
+      whitelist_search_this.setState({
+        'reg_btn_disabled': true,
+      });
+      return
+    }
+
+    whitelist_search_this.setState({
+      'msg': 'Please check availablity',
+      'reg_btn_disabled': false,
+    });
+  }
+
+  async click(e) {
+    console.log(whitelist_search_this.addr);
+
+    // const accounts = await window.ethereum.request({method: 'eth_accounts'});
+    const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${whitelist_search_this.addr}`, {method: "GET"});
+    const result = await response.json();
+    // console.log(result);
+    if(result['error']){
+      whitelist_search_this.setState({'msg': result['msg']});
+      return
+    }
+
+    const used = await whitelist_contract.whitelist_used(whitelist_search_this.addr);
+    console.log(used);
+    if(used){
+      whitelist_search_this.setState({'msg': 'The whitelist registration opportunity has been used'});
+      return
+    }
+
+    whitelist_search_this.setState({'msg': 'Registration available, please connect the wallet'});
+
+    const accounts = await window.ethereum.request({method: 'eth_accounts'});
+    if (accounts.length) {
+      handle_reg_box.style.display = 'block';
+    }else{
+      handle_reg_box.style.display = 'none';
+    }
+
+    // const signer2 = await provider.getSigner();
+    // const powid_contract2 = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, signer2);
+    // const res = await powid_contract2.purchase(ethers.toUtf8Bytes(whitelist_search_this.handle));
+    // metamask_connect_this.sync();
+
+    // const res = await whitelist_contract.available(ethers.toUtf8Bytes(e.target.value));
+  }
+
+  render() {
+    return e(Fragment, null,
+      e('input',
+        {
+          onKeyUp: this.keyup,
+          className: 'input is-large'
+        },
+        null
       ),
       e('div',
         {
-          'style': {margin:'1em auto 0 auto'},
+          'style': {margin:'1em auto'},
         },
-        e('a', {onClick: this.go_whitelist}, 'Claim whitelist'),
+        `${this.state.msg}`
+      ),
+      e('button',
+        {
+          onClick: this.click,
+          className: 'button is-link',
+          disabled: this.state.reg_btn_disabled,
+        },
+        'Check Availablity'
       ),
     );
   }
@@ -413,20 +465,12 @@ class HandleList extends Component {
     }
   }
 
-  async click(e) {
-    console.log(e.target.innerText);
-    script_model_this.setState({
-      display: 'block',
-      handle: e.target.innerText,
-    });
-  }
-
   async go_invite(e) {
     location.href = '/invite';
   }
 
-  async go_records(e) {
-    location.href = '/records';
+  async go_reg(e) {
+    location.href = '/';
   }
 
   render() {
@@ -439,89 +483,10 @@ class HandleList extends Component {
     return e('div', {
       style: {display: this.state.display},
       className: 'box'
-    }, 
-    list,
+    }, list,
     e('a', {onClick: this.go_invite}, 'Create referral links'),
     e('br', {}, null),
-    e('a', {onClick: this.go_records}, 'Check PoW credit records'),
-    );
-  }
-}
-
-class ScriptModel extends Component {
-  constructor() {
-    super();
-    this.state = {
-      'display': 'none',
-      'handle': '',
-    };
-    script_model_this = this;
-  }
-
-  async install_cmd_copy(e) {
-    const install_cmd = document.getElementById('install_cmd');
-    // cmd.select();
-    // cmd.setSelectionRange(0, 99999); // For mobile devices
-    navigator.clipboard.writeText(install_cmd.innerText);
-    // alert("Copied the text: " + cmd.innerText);
-  }
-
-  async run_cmd_copy(e) {
-    const run_cmd = document.getElementById('run_cmd');
-    navigator.clipboard.writeText(run_cmd.innerText);
-  }
-
-  async close(e) {
-    script_model_this.setState({display: 'none'})
-  }
-
-  render() {
-    return e('div', {
-        className: 'modal',
-        style: {display: this.state.display}
-      }, 
-      e('div',
-        {className: 'modal-background'}, ''
-      ),
-      e('div',
-        {className: 'modal-content'},
-        e('figure',
-          {className: 'highlight'},
-          e('div',
-            {}, 'Download Python 3.10 (suggested)'
-          ),
-          e('div',
-            {}, 'Download and verify the script in the Terminal'
-          ),
-          e('code',
-            {id: 'install_cmd'},
-            `python -c "import os, pip; pip.main(['install', 'requests']); import hashlib, requests; h='12dbef61331441bcb12c2cb36cf730ac61dc17721d5c40c530ec7d931bbd127e'; c=requests.get('http://m.powid.xyz/miner.py').text.encode(); assert hashlib.sha256(c).hexdigest()==h; open('miner.py', 'wb').write(c)"`
-          ),
-          e('button',
-            { className: 'button bd-copy', onClick: this.install_cmd_copy }, 'Copy'
-          )
-        ),
-
-        e('figure',
-          {className: 'highlight'},
-          e('div',
-            {}, 'Run the script in the Terminal'
-          ),
-          e('code',
-            {id: 'run_cmd'},
-            `python -c "from hashlib import sha256; h='12dbef61331441bcb12c2cb36cf730ac61dc17721d5c40c530ec7d931bbd127e'; c=open('miner.py').read().encode(); assert sha256(c).hexdigest()==h; exec(c)" ${this.state.handle}`
-          ),
-          e('div',
-            {}, 'Start PoW'
-          ),
-          e('button',
-            { className: 'button bd-copy', onClick: this.run_cmd_copy }, 'Copy'
-          )
-        ),
-      ),
-      e('button',
-        {className: 'modal-close is-large', onClick: this.close}, ''
-      )
+    e('a', {onClick: this.go_reg}, 'Run PoW to get credits'),
     );
   }
 }
@@ -558,7 +523,6 @@ async function switch_chain() {
 
 }
 
-
 metamask_connect2.addEventListener('click', () => {
   metamask_connect_this.login();
 });
@@ -571,22 +535,24 @@ window.onload = async () => {
     document.getElementById('metamask-banner').style.display = 'block';
     return
   }
+  
+  const metamask_connect = createRoot(document.getElementById('metamask_connect'));
+  metamask_connect.render(e(MetamaskConnect));
+
+  const whitelist_search = createRoot(document.getElementById('whitelist_search'));
+  whitelist_search.render(e(WhitelistClaim));
 
   const handle_reg = createRoot(document.getElementById('handle_reg'));
   handle_reg.render(e(HandleReg));
 
-  const metamask_connect = createRoot(document.getElementById('metamask_connect'));
-  // metamask_connect.render(e(StrictMode, null, e(Button)));
-  metamask_connect.render(e(MetamaskConnect));
+  handle_reg_box = document.getElementById('handle_reg_box');
 
   const handle_list = createRoot(document.getElementById('handle_list'));
   handle_list.render(e(HandleList));
 
-  const script_model = createRoot(document.getElementById('script_model'));
-  script_model.render(e(ScriptModel));
-
+  let provider = new ethers.JsonRpcProvider(RPC_URL);
   let provider1 = new ethers.BrowserProvider(window.ethereum);
-  let powid_contract = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, provider1);
+  let whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
   let usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
 
   const chain_id = await window.ethereum.request({method: 'eth_chainId'})
@@ -602,7 +568,7 @@ window.onload = async () => {
   window.ethereum.on('accountsChanged', (accounts) => {
     console.log(accounts[0]);
     metamask_connect_this.sync();
-    handle_list_this.sync();
+  //   handle_list_this.sync();
   });
 
   window.ethereum.on('chainChanged', async (chain_id) => {
@@ -611,7 +577,7 @@ window.onload = async () => {
     }
 
     provider1 = new ethers.BrowserProvider(window.ethereum);
-    powid_contract = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, provider1);
+    whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
     usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
 
     if(metamask_connect_this){
@@ -619,9 +585,10 @@ window.onload = async () => {
       metamask_connect_this.sync();
     }
   });
-
 }
 
+// alert(window.location.search.replace('?', ''));
+// alert(window.location.hash.replace('#', ''));
 
 </script>
 </html>
