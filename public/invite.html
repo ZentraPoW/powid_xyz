@@ -122,23 +122,16 @@ let REFERRAL_PREFIX;
 const TOKEN_NAME = 'ETH';
 const TOKEN_SYMBOL = 'ETH';
 
-if(window.location.hostname == 'testnet.powid.xyz'){
+if(window.location.hostname == 'test.powid.xyz'){
   CHAIN_ID = '0xa';
   CHAIN_NAME = 'OP';
   RPC_URL = 'https://mainnet.optimism.io';
   POWID_CONTRACT = '0xa8691bEaEE825Ace9F620Bed657Fa742Db134892';
   PURCHASE_CONTRACT = '0x7CdFB1fbf7d4E314E6c54577781DC7A7B00f2C9d'; // USDT Purchase
+  // PURCHASE_CONTRACT = '0xaEa9a28e079CcFD6Be1AB999395265d42cdE315F'; // old PoWIDPurchase
   USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
   NODE_HOST = 'https://testnode.powid.xyz:8090';
   REFERRAL_PREFIX = 'https://test.powid.xyz/referral.html?';
-}else if(window.location.hostname == 'n5.bitpow.org'){
-  CHAIN_ID = '0xa';
-  CHAIN_NAME = 'OP';
-  RPC_URL = 'https://mainnet.optimism.io';
-  PURCHASE_CONTRACT = '0xaEa9a28e079CcFD6Be1AB999395265d42cdE315F'; // old PoWIDPurchase
-  USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
-  NODE_HOST = '';
-  REFERRAL_PREFIX = '';
 }else{
   CHAIN_ID = '0x7a69';
   CHAIN_NAME = 'Hardhat';
