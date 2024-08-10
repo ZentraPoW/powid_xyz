@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>PoW ID</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.2/css/bulma.min.css">
+  <link rel="stylesheet" href="/static/bulma.min.css">
 <style>
 </style>
 </head>
@@ -32,24 +32,17 @@
     </div>
   </nav>
 
-  <div id="metamask-banner" class="notification is-warning is-light" style="display: none; margin: 1rem;">
-    <button class="delete"></button>
-    <strong>MetaMask not detected!</strong> Please install MetaMask to use this application.
-    <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">Download MetaMask</a>
-  </div>
-
   <section class="hero is-success is-fullheight">
     <div class="hero-body">
       <div class="container has-text-centered">
         <div class="column is-4 is-offset-4" style="min-width: 420px;">
+          <div id="referral_check"></div>
+          <br><br><br>
+
           <h3 class="title has-text-black">PoW ID</h3>
           <hr class="login-hr">
-          <p class="subtitle has-text-black">Check if your address is eligible<br/> for claiming handle</p>
+          <p class="subtitle has-text-black">Choose Your Handle</p>
           <div class="box">
-            <div id="whitelist_search"></div>
-          </div>
-
-          <div class="box" id="handle_reg_box" style="display: none;">
             <!-- <figure class="avatar">
               <img src="https://via.placeholder.com/150">
             </figure> -->
@@ -67,21 +60,26 @@
     </div>
   </section>
 
+  <div id="script_model"></div>
 </body>
 
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha512-8Q6Y9XnTbOE+JNvjBQwJ2H8S+UV4uA6hiRykhdtIyDYZ2TprdNmWOUaKdGzOhyr4dCyk287OejbPvwl7lrfqrQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha512-MOCpqoRoisCTwJ8vQQiciZv0qcpROCidek3GTFS6KTk2+y7munJIlKCVkFCYY+p3ErYFXCjmFjnfTTRSC1OHWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js" integrity="sha512-m7nhpWHotpucPI37I4lPovL28Bm2BhAMV8poF3F8Z9oOEZ3jlxGzkgvG0EMt1mVL1xydr1erlBbmN90js/ssUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha512-MOCpqoRoisCTwJ8vQQiciZv0qcpROCidek3GTFS6KTk2+y7munJIlKCVkFCYY+p3ErYFXCjmFjnfTTRSC1OHWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.min.js" integrity="sha512-I5GJQRKGdj2miDs8ComgARfiAQiZJo/43YasH22qtweoG+YRXLTDYegxC/vPgw/ERxRzww/F4l4+8UiMmI20sw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script type="module">
-import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.min.js";
+import { ethers } from "/static/ethers-6.11.1.js";
 
 const { createElement: e, Component, Fragment, useState } = React;
 const { createRoot } = ReactDOM;
 
 const HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_';
 
+// const PURCHASE_ABI = [
+//   "function purchase(bytes memory _handle) public",
+//   "function available(bytes memory _handle) public view returns (uint256)"
+// ];
 const PURCHASE_REFERRAL_ABI = [
   "function purchase_by_referral(bytes memory _handle, bytes memory _referral) public",
   "function available(bytes memory _handle) public view returns (uint256)",
@@ -99,6 +97,7 @@ const USDT_ABI = [
 ];
 
 let PURCHASE_REFERRAL_CONTRACT;
+// let PURCHASE_CONTRACT;
 let POWID_CONTRACT;
 let USDT_CONTRACT;
 let CHAIN_ID;
@@ -134,10 +133,10 @@ if(window.location.hostname == 'testnet.powid.xyz'){
 }
 
 var metamask_connect_this = null;
-var whitelist_search_this = null;
+var referral_check_this = null;
 var handle_reg_this = null;
-var handle_reg_box = null;
 var handle_list_this = null;
+// var script_model_this = null;
 
 const metamask_connect2 = document.getElementById('metamask_connect2');
 const navbar_menu = document.getElementById('navbarMenu');
@@ -147,7 +146,8 @@ class MetamaskConnect extends Component {
     super();
     this.state = {
       addr: null,
-      msg: ''
+      usdt: 0,
+      approved_usdt: 0,
     };
     metamask_connect_this = this;
   }
@@ -163,26 +163,11 @@ class MetamaskConnect extends Component {
       metamask_connect2.style.display = 'none';
       navbar_menu.style.display = 'block';
 
-      const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
-      const result = await response.json();
-      console.log(result);
-      if(result['error']){
-        metamask_connect_this.setState({'msg': result['msg']});
-        return
-      }
-
-      const used = await whitelist_contract.whitelist_used(accounts[0]);
-      console.log(used);
-      if(used){
-        metamask_connect_this.setState({'msg': 'The whitelist registration opportunity has been used'});
-        return
-      }
-      metamask_connect_this.setState({'msg': 'In whitelist and available for registration'});
-
-      handle_reg_this.setState({'handle_input_readonly': false});
-      handle_reg_box.style.display = 'block';
-    }else{
-      handle_reg_box.style.display = 'none';
+      const usdt = await usdt_contract.balanceOf(accounts[0]);
+      metamask_connect_this.setState({'usdt': usdt});
+      const approved = await usdt_contract.allowance(accounts[0], PURCHASE_REFERRAL_CONTRACT);
+      metamask_connect_this.setState({'approved_usdt': approved});
+      handle_reg_this.setState({'metamask_ready': true});
     }
   }
 
@@ -204,7 +189,7 @@ class MetamaskConnect extends Component {
 
     // console.log(metamask_connect_this);
     metamask_connect_this.sync();
-    // handle_list_this.sync();
+    handle_list_this.sync();
   }
 
   render() {
@@ -215,9 +200,104 @@ class MetamaskConnect extends Component {
       ),
       e('div',
         { },
-        `${this.state.msg}`
+        `USDT: ${ethers.formatUnits(this.state.usdt, 6)} Approved USDT: ${ethers.formatUnits(this.state.approved_usdt, 6)}`
       ),
     )
+  }
+}
+
+class ReferralCheck extends Component {
+  constructor() {
+    super();
+    this.state = {
+      'handle': '',
+      'msg': '',
+      'handle_input_readonly': true,
+    };
+    referral_check_this = this;
+    this.update();
+  }
+
+  async update(){
+    // alert(window.location.hash.replace('#', ''));
+    const referral_handle = window.location.search.replace('?', '');
+    console.log(referral_handle);
+    if(referral_handle.length < 5 || referral_handle.length > 41){
+      referral_check_this.state['msg'] = 'Referral wrong length';
+      referral_check_this.state['handle_input_readonly'] = false;
+      return
+    }
+
+    const whitelist_contract0 = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider);
+
+    const res = await whitelist_contract0.available(ethers.toUtf8Bytes(referral_handle));
+    // console.log(res);
+    if(res==0n){
+      console.log('referral existing2');
+      referral_check_this.setState({'handle': referral_handle});
+      handle_reg_this.setState({
+        'referral_ready': true,
+      });
+    }else{
+      referral_check_this.setState({
+        'msg': 'Referral not existing',
+        'handle_input_readonly': false,
+      });
+      console.log('referral not existing2');
+    }
+  }
+
+  async change(e) {
+    referral_check_this.setState({'handle': e.target.value});
+  }
+
+  async save(e) {
+    console.log(referral_check_this.state.handle);
+    referral_check_this.setState({
+      'msg': 'Checking',
+    });
+    const whitelist_contract0 = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider);
+
+    const res = await whitelist_contract0.available(ethers.toUtf8Bytes(referral_check_this.state.handle));
+    if(res==0n){
+      console.log('referral existing');
+      referral_check_this.setState({
+        'msg': 'Referral existing',
+      });
+      location.href = `/referral.html?${referral_check_this.state.handle}`;
+    }else{
+      console.log('referral not existing');
+      referral_check_this.setState({
+        'msg': 'Referral not existing',
+      });
+    }
+  }
+
+  render() {
+    return e('div', {
+      className: 'message is-warning'
+    },
+      e('div',{
+          className: 'message-header'
+        },
+          e('p', null, this.state.msg),
+          e('button', {
+            onClick: this.save,
+            className: 'button is-small is-outlined'
+          }, 'Save'),
+      ),
+      e('div',{
+          className: 'message-body'
+        },
+          e('input', {
+            className: 'input is-warning is-small',
+            placeholder: 'handle',
+            readOnly: this.state.handle_input_readonly,
+            onChange: this.change,
+            value: this.state.handle
+          }, null),
+      ),
+    );
   }
 }
 
@@ -226,7 +306,8 @@ class HandleReg extends Component {
     super();
     this.state = {
       'msg': '',
-      'handle_input_readonly': true,
+      'referral_ready': false,
+      'metamask_ready': false,
       'reg_btn_disabled': true,
     };
     handle_reg_this = this;
@@ -235,16 +316,16 @@ class HandleReg extends Component {
 
   async keyup(e) {
     handle_reg_this.handle = e.target.value;
-    if(e.target.value.length < 10){
-      handle_reg_this.setState({'msg': 'Too short'});
+    if(e.target.value.length < 5){
+      handle_reg_this.setState({'msg': 'too short'});
       return
     }else if(e.target.value.length > 41){
-      handle_reg_this.setState({'msg': 'Too long'});
+      handle_reg_this.setState({'msg': 'too long'});
       return
     }
 
     try{
-      const res = await whitelist_contract.available(ethers.toUtf8Bytes(handle_reg_this.handle));
+      const res = await whitelist_contract.available(ethers.toUtf8Bytes(e.target.value));
       console.log(res);
     }catch(error){
       console.log(error);
@@ -253,14 +334,14 @@ class HandleReg extends Component {
 
     handle_reg_this.setState({'msg': ''});
 
-    for(const i of handle_reg_this.handle) {
+    for(const i of e.target.value) {
       // console.log('handle', i, HANDLE_LETTERS.indexOf(i));
       if(HANDLE_LETTERS.indexOf(i) == -1){
-        handle_reg_this.setState({'msg': 'Invalid letter'});
+        handle_reg_this.setState({'msg': 'invalid letter'});
         return
       }
     }
-    handle_reg_this.setState({'msg': 'Checking availablity'});
+    handle_reg_this.setState({'msg': 'checking availablity'});
 
     const res = await whitelist_contract.available(ethers.toUtf8Bytes(e.target.value));
     if(res == 0n){
@@ -277,133 +358,30 @@ class HandleReg extends Component {
   }
 
   async click(e) {
-    const accounts = await window.ethereum.request({method: 'eth_accounts'});
-
-    if (accounts.length) {
-      const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
-      const result = await response.json();
-      console.log(result);
-      if(result['error']){
-        whitelist_search_this.setState({'msg': result['msg']});
-        return
-      }
-
-      const used = await whitelist_contract.whitelist_used(accounts[0]);
-      console.log(used);
-      if(used){
-        handle_reg_this.setState({'msg': 'The whitelist registration opportunity has been used'});
-        return
-      }
-
-      try{
-        const res = await whitelist_contract.available(ethers.toUtf8Bytes(handle_reg_this.handle));
-        console.log(res);
-      }catch(error){
-        console.log(error);
-        // console.log(error.reason);
-      }
-
-      const signer1 = await provider1.getSigner();
-      const whitelist_contract1 = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, signer1);
-
-      try{
-        const res = await whitelist_contract1.reg_with_whitelist(ethers.toUtf8Bytes(handle_reg_this.handle), result['proofs']);
-        console.log(res);
-      }catch(error){
-        handle_reg_this.setState({'msg': 'Error'});
-        console.log(error);
-        // console.log(error.reason);
-      }
+    var price = 0n;
+    if (handle_reg_this.handle.length > 9 && handle_reg_this.handle.length < 42){
+      price = 4n * (10n ** 6n);
+    }else if(handle_reg_this.handle.length > 4 && handle_reg_this.handle.length < 10){
+      price = 4n * 2n**ethers.getBigInt(10 - handle_reg_this.handle.length) * (10n ** 6n);
     }
-  }
-
-  render() {
-    return e(Fragment, null,
-      e('input',
-        {
-          onKeyUp: this.keyup,
-          readOnly: this.state.handle_input_readonly,
-          className: 'input is-large'
-        },
-        null
-      ),
-      e('div',
-        {
-          'style': {margin:'1em auto'},
-        },
-        `${this.state.msg}`
-      ),
-      e('button',
-        {
-          onClick: this.click,
-          className: 'button is-link',
-          disabled: this.state.reg_btn_disabled,
-        },
-        'Claim Handle'
-      ),
-    );
-  }
-}
-
-class WhitelistClaim extends Component {
-  constructor() {
-    super();
-    this.state = {
-      'msg': '',
-      'reg_btn_disabled': true,
-    };
-    whitelist_search_this = this;
-    whitelist_search_this.addr = '';
-  }
-
-  async keyup(e) {
-    whitelist_search_this.addr = e.target.value;
-    if(e.target.value.length != 42){
-      whitelist_search_this.setState({'msg': 'Not match'});
-      whitelist_search_this.setState({
-        'reg_btn_disabled': true,
-      });
-      return
-    }
-
-    whitelist_search_this.setState({
-      'msg': 'Please check availablity',
-      'reg_btn_disabled': false,
-    });
-  }
-
-  async click(e) {
-    console.log(whitelist_search_this.addr);
-
-    // const accounts = await window.ethereum.request({method: 'eth_accounts'});
-    const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${whitelist_search_this.addr}`, {method: "GET"});
-    const result = await response.json();
-    // console.log(result);
-    if(result['error']){
-      whitelist_search_this.setState({'msg': result['msg']});
-      return
-    }
-
-    const used = await whitelist_contract.whitelist_used(whitelist_search_this.addr);
-    console.log(used);
-    if(used){
-      whitelist_search_this.setState({'msg': 'The whitelist registration opportunity has been used'});
-      return
-    }
-
-    whitelist_search_this.setState({'msg': 'Registration available, please connect the wallet'});
+    console.log(price);
 
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
-    if (accounts.length) {
-      handle_reg_box.style.display = 'block';
-    }else{
-      handle_reg_box.style.display = 'none';
+    const approved = await usdt_contract.allowance(accounts[0], PURCHASE_REFERRAL_CONTRACT);
+    console.log(approved);
+    const signer1 = await provider1.getSigner();
+    if(approved < price){
+      // console.log('approve');
+      const usdt_contract1 = new ethers.Contract(USDT_CONTRACT, USDT_ABI, signer1);
+      const res = await usdt_contract1.approve(PURCHASE_REFERRAL_CONTRACT, price);
+      // console.log(res);
+      metamask_connect_this.sync();
+      handle_list_this.sync();
     }
 
-    // const signer2 = await provider.getSigner();
-    // const powid_contract2 = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, signer2);
-    // const res = await powid_contract2.purchase(ethers.toUtf8Bytes(whitelist_search_this.handle));
-    // metamask_connect_this.sync();
+    const whitelist_contract1 = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, signer1);
+    const res = await whitelist_contract1.purchase_by_referral(ethers.toUtf8Bytes(handle_reg_this.handle), ethers.toUtf8Bytes(referral_check_this.state.handle));
+    metamask_connect_this.sync();
 
     // const res = await whitelist_contract.available(ethers.toUtf8Bytes(e.target.value));
   }
@@ -413,6 +391,7 @@ class WhitelistClaim extends Component {
       e('input',
         {
           onKeyUp: this.keyup,
+          readOnly: !(this.state.metamask_ready && this.state.referral_ready),
           className: 'input is-large'
         },
         null
@@ -429,7 +408,7 @@ class WhitelistClaim extends Component {
           className: 'button is-link',
           disabled: this.state.reg_btn_disabled,
         },
-        'Check Availablity'
+        'Purchase Handle'
       ),
     );
   }
@@ -465,8 +444,12 @@ class HandleList extends Component {
     }
   }
 
-  async go_invite(e) {
-    location.href = '/invite.html';
+  async click(e) {
+    console.log(e.target.innerText);
+    // script_model_this.setState({
+    //   display: 'block',
+    //   handle: e.target.innerText,
+    // });
   }
 
   async go_reg(e) {
@@ -484,9 +467,7 @@ class HandleList extends Component {
       style: {display: this.state.display},
       className: 'box'
     }, list,
-    e('a', {onClick: this.go_invite}, 'Create referral links'),
-    e('br', {}, null),
-    e('a', {onClick: this.go_reg}, 'Run PoW to get credits'),
+      e('a', {onClick: this.go_reg}, 'Run PoW to get credits'),
     );
   }
 }
@@ -523,38 +504,29 @@ async function switch_chain() {
 
 }
 
+const metamask_connect = createRoot(document.getElementById('metamask_connect'));
+// metamask_connect.render(e(StrictMode, null, e(Button)));
+metamask_connect.render(e(MetamaskConnect));
+
+const referral_check = createRoot(document.getElementById('referral_check'));
+referral_check.render(e(ReferralCheck));
+
+const handle_reg = createRoot(document.getElementById('handle_reg'));
+handle_reg.render(e(HandleReg));
+
+const handle_list = createRoot(document.getElementById('handle_list'));
+handle_list.render(e(HandleList));
+
+let provider = new ethers.JsonRpcProvider(RPC_URL);
+let provider1 = new ethers.BrowserProvider(window.ethereum);
+let whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
+let usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+
 metamask_connect2.addEventListener('click', () => {
   metamask_connect_this.login();
 });
 
 window.onload = async () => {
-  if (window.ethereum && window.ethereum.isMetaMask) {
-    console.log("MetaMask is installed");
-  } else {
-    console.log("MetaMask is not installed");
-    document.getElementById('metamask-banner').style.display = 'block';
-    return
-  }
-  
-  const metamask_connect = createRoot(document.getElementById('metamask_connect'));
-  metamask_connect.render(e(MetamaskConnect));
-
-  const whitelist_search = createRoot(document.getElementById('whitelist_search'));
-  whitelist_search.render(e(WhitelistClaim));
-
-  const handle_reg = createRoot(document.getElementById('handle_reg'));
-  handle_reg.render(e(HandleReg));
-
-  handle_reg_box = document.getElementById('handle_reg_box');
-
-  const handle_list = createRoot(document.getElementById('handle_list'));
-  handle_list.render(e(HandleList));
-
-  let provider = new ethers.JsonRpcProvider(RPC_URL);
-  let provider1 = new ethers.BrowserProvider(window.ethereum);
-  let whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
-  let usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
-
   const chain_id = await window.ethereum.request({method: 'eth_chainId'})
   console.log(chain_id);
   if(chain_id != CHAIN_ID){
@@ -564,31 +536,29 @@ window.onload = async () => {
   if(metamask_connect_this){
     metamask_connect_this.sync();
   }
-
-  window.ethereum.on('accountsChanged', (accounts) => {
-    console.log(accounts[0]);
-    metamask_connect_this.sync();
-  //   handle_list_this.sync();
-  });
-
-  window.ethereum.on('chainChanged', async (chain_id) => {
-    if(chain_id != CHAIN_ID){
-      switch_chain();
-    }
-
-    provider1 = new ethers.BrowserProvider(window.ethereum);
-    whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
-    usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
-
-    if(metamask_connect_this){
-      console.log(chain_id);
-      metamask_connect_this.sync();
-    }
-  });
 }
 
-// alert(window.location.search.replace('?', ''));
-// alert(window.location.hash.replace('#', ''));
+window.ethereum.on('accountsChanged', (accounts) => {
+  console.log(accounts[0]);
+  metamask_connect_this.sync();
+  handle_list_this.sync();
+});
+
+window.ethereum.on('chainChanged', async (chain_id) => {
+  if(chain_id != CHAIN_ID){
+    switch_chain();
+  }
+
+  provider1 = new ethers.BrowserProvider(window.ethereum);
+  whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
+  usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+
+  if(metamask_connect_this){
+    console.log(chain_id);
+    metamask_connect_this.sync();
+  }
+});
+
 
 </script>
 </html>

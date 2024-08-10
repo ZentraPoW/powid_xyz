@@ -148,6 +148,10 @@ let NODE_HOST;
 const TOKEN_NAME = 'ETH';
 const TOKEN_SYMBOL = 'ETH';
 
+let provider1;
+let powid_contract;
+let usdt_contract;
+
 if(window.location.hostname == 'testnet.powid.xyz'){
   CHAIN_ID = '0xa';
   CHAIN_NAME = 'OP';
@@ -422,11 +426,11 @@ class HandleList extends Component {
   }
 
   async go_invite(e) {
-    location.href = '/invite';
+    location.href = '/invite.html';
   }
 
   async go_records(e) {
-    location.href = '/records';
+    location.href = '/records.html';
   }
 
   render() {
@@ -558,7 +562,6 @@ async function switch_chain() {
 
 }
 
-
 metamask_connect2.addEventListener('click', () => {
   metamask_connect_this.login();
 });
@@ -572,6 +575,10 @@ window.onload = async () => {
     return
   }
 
+  provider1 = new ethers.BrowserProvider(window.ethereum);
+  powid_contract = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, provider1);
+  usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+
   const handle_reg = createRoot(document.getElementById('handle_reg'));
   handle_reg.render(e(HandleReg));
 
@@ -584,10 +591,6 @@ window.onload = async () => {
 
   const script_model = createRoot(document.getElementById('script_model'));
   script_model.render(e(ScriptModel));
-
-  let provider1 = new ethers.BrowserProvider(window.ethereum);
-  let powid_contract = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, provider1);
-  let usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
 
   const chain_id = await window.ethereum.request({method: 'eth_chainId'})
   console.log(chain_id);

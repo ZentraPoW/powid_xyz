@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PoW ID</title>
+  <link rel="stylesheet" href="/static/bulma.min.css">
+<style>
+code, pre {
+    -moz-osx-font-smoothing: auto;
+    -webkit-font-smoothing: auto;
+    font-family: var(--bulma-code-family);
+}
+
+pre code {
+    background-color: transparent;
+    color: currentColor;
+    font-size: 'Verdana';
+    padding: 0;
+}
+
+.highlight {
+  background-color: black;
+  border-radius: .5em;
+  color: var(--hl-gray-03);
+  font-size: .875em;
+  position: relative;
+  margin: 50px 0 0 0;
+  padding: 1em;
+
+}
+
+.highlight code {
+    background-color: transparent;
+    color: gray;
+    font-size: 1em;
+  line-height: 1.375;
+  word-break: break-word;
+  word-wrap: normal;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+.highlight:hover .bd-copy {
+  opacity: 1;
+}
+
+.bd-copy {
+  opacity: 0;
+  position: absolute;
+  right: .75em;
+  top: .75em;
+  transition-duration: var(--bulma-duration);
+  transition-property: opacity;
+  background-color: #00d1b2;
+  border: none;
+  border-radius: .5em !important;
+  color: var(--hl-background);
+  font-size: 1em;
+  font-weight: var(--bulma-weight-semibold);
+}
+</style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="">
+          PoWID.xyz
+          <!-- <img src="../images/bulma.png" alt="Logo"> -->
+        </a>
+        <span class="navbar-burger burger" data-target="navbarMenu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+
+        <span id="metamask_connect2" class="navbar-burger" style="margin-inline-start: .5em; width: 6em;">
+          Connect
+        </span>
+      </div>
+      <div id="navbarMenu" class="navbar-menu">
+        <div class="navbar-end">
+          <div class="navbar-item" id="metamask_connect">Connect</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-success is-fullheight">
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <div class="column is-4 is-offset-4" style="min-width: 420px;">
+          <h3 class="title has-text-black">PoW ID</h3>
+          <hr class="login-hr">
+          <p class="subtitle has-text-black">PoW contribution of ID</p>
+          <div id="handle_list" style="margin: 100px 0 0 0;"></div>
+          <div id="contribution_list" style="margin: 100px 0 0 0;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="script_model"></div>
+</body>
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha512-8Q6Y9XnTbOE+JNvjBQwJ2H8S+UV4uA6hiRykhdtIyDYZ2TprdNmWOUaKdGzOhyr4dCyk287OejbPvwl7lrfqrQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js" integrity="sha512-m7nhpWHotpucPI37I4lPovL28Bm2BhAMV8poF3F8Z9oOEZ3jlxGzkgvG0EMt1mVL1xydr1erlBbmN90js/ssUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha512-MOCpqoRoisCTwJ8vQQiciZv0qcpROCidek3GTFS6KTk2+y7munJIlKCVkFCYY+p3ErYFXCjmFjnfTTRSC1OHWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.min.js" integrity="sha512-I5GJQRKGdj2miDs8ComgARfiAQiZJo/43YasH22qtweoG+YRXLTDYegxC/vPgw/ERxRzww/F4l4+8UiMmI20sw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script type="module">
+import { ethers } from "/static/ethers-6.11.1.js";
+
+const { createElement: e, Component, Fragment, useState } = React;
+const { createRoot } = ReactDOM;
+
+const HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_';
+
+// const PURCHASE_ABI = [
+//   "function purchase(bytes memory _handle) public",
+//   "function available(bytes memory _handle) public view returns (uint256)"
+// ];
+
+const USDT_ABI = [
+  "function allowance(address owner, address spender) external view returns (uint256)",
+  "function approve(address spender, uint256 value) external returns (bool)",
+  "function transferFrom(address from, address to, uint256 value) external returns (bool)",
+  "function decimals() view returns (string)",
+  "function symbol() view returns (string)",
+  "function balanceOf(address addr) view returns (uint)"
+];
+
+let PURCHASE_CONTRACT;
+let POWID_CONTRACT;
+let USDT_CONTRACT;
+let CHAIN_ID;
+let CHAIN_NAME;
+let RPC_URL;
+let NODE_HOST;
+const TOKEN_NAME = 'ETH';
+const TOKEN_SYMBOL = 'ETH';
+
+if(window.location.hostname == 'testnet.powid.xyz'){
+  CHAIN_ID = '0xa';
+  CHAIN_NAME = 'OP';
+  RPC_URL = 'https://mainnet.optimism.io';
+  PURCHASE_CONTRACT = '0x7CdFB1fbf7d4E314E6c54577781DC7A7B00f2C9d'; // USDT Purchase
+  POWID_CONTRACT = '0xa8691bEaEE825Ace9F620Bed657Fa742Db134892';
+  USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
+  NODE_HOST = 'https://testnode.powid.xyz';
+}else if(window.location.hostname == 'n5.bitpow.org'){
+  CHAIN_ID = '0xa';
+  CHAIN_NAME = 'OP';
+  RPC_URL = 'https://mainnet.optimism.io';
+  PURCHASE_CONTRACT = '0xaEa9a28e079CcFD6Be1AB999395265d42cdE315F'; // old PoWIDPurchase
+  USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
+  NODE_HOST = '';
+}else{
+  RPC_URL = 'http://127.0.0.1:8545';
+  CHAIN_ID = '0x7a69';
+  CHAIN_NAME = 'Hardhat';
+  PURCHASE_CONTRACT = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'; // Mock Purchase on harthat 
+  USDT_CONTRACT = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Mock USDT on harthat
+  NODE_HOST = 'http://127.0.0.1:8090';
+}
+
+// var handle_reg_this = null;
+var metamask_connect_this = null;
+var handle_list_this = null;
+var contribution_list_this = null;
+
+const metamask_connect2 = document.getElementById('metamask_connect2');
+const navbar_menu = document.getElementById('navbarMenu');
+
+class MetamaskConnect extends Component {
+  constructor() {
+    super();
+    this.state = {
+      addr: null,
+      usdt: 0,
+      approved_usdt: 0,
+    };
+    metamask_connect_this = this;
+  }
+
+  componentDidMount() {
+    this.sync();
+  }
+
+  async sync() {
+    const accounts = await window.ethereum.request({method: 'eth_accounts'});
+    if (accounts.length) {
+      metamask_connect_this.setState({'addr': accounts[0]});
+      metamask_connect2.style.display = 'none';
+      navbar_menu.style.display = 'block';
+
+      const usdt = await usdt_contract.balanceOf(accounts[0]);
+      metamask_connect_this.setState({'usdt': usdt});
+      const approved = await usdt_contract.allowance(accounts[0], PURCHASE_CONTRACT);
+      metamask_connect_this.setState({'approved_usdt': approved});
+      // handle_reg_this.setState({'handle_input_readonly': false});
+    }
+  }
+
+  async login() {
+    const signer = await provider1.getSigner();
+    const accounts = await provider1.send("eth_requestAccounts", []);
+
+    const chain_id = await window.ethereum.request({method: 'eth_chainId'})
+    console.log(chain_id);
+    if(chain_id != CHAIN_ID){
+      switch_chain();
+    }
+
+    // console.log(await window.ethereum.request({method: 'eth_accounts'}));
+    if (accounts.length) {
+      metamask_connect_this.setState({'addr': accounts[0]});
+      // handle_reg_this.setState({'handle_input_readonly': false});
+    }
+
+    // console.log(metamask_connect_this);
+    metamask_connect_this.sync();
+    handle_list_this.sync();
+  }
+
+  render() {
+    return e('div', {},
+      e('button',
+        { onClick: this.login },
+        `${this.state.addr || 'Connect'}`
+      ),
+      e('div',
+        { },
+        `USDT: ${ethers.formatUnits(this.state.usdt, 6)} Approved USDT: ${ethers.formatUnits(this.state.approved_usdt, 6)}`
+      ),
+    )
+  }
+}
+
+class HandleList extends Component {
+  constructor() {
+    super();
+    this.state = {
+      'display': 'none',
+      'handles': [],
+    };
+    handle_list_this = this;
+  }
+
+  componentDidMount() {
+    this.sync();
+  }
+
+  async sync() {
+    const accounts = await window.ethereum.request({method: 'eth_accounts'});
+    if (accounts.length) {
+      const response = await fetch(`${NODE_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
+      const result = await response.json();
+      console.log(result);
+      if(result['handles'].length > 0){
+        this.setState({
+          'display': 'block',
+          'handles': result['handles'],
+        });
+      }
+    }
+  }
+
+  async click(e) {
+    console.log(e.target.innerText);
+    contribution_list_this.sync(e.target.innerText);
+    // script_model_this.setState({
+    //   display: 'block',
+    //   handle: e.target.innerText,
+    // });
+  }
+
+  async go_reg(e) {
+    location.href = '/';
+  }
+
+  render() {
+    const list = this.state.handles.map((i) =>{
+      return e('div',
+        { onClick: this.click, key: i },
+        `${i}`
+      )
+    })
+    return e('div', {
+      style: {display: this.state.display},
+      className: 'box'
+    }, list,
+    e('a', {onClick: this.go_reg}, 'Run PoW to get credits'),
+    );
+  }
+}
+
+class ContributionList extends Component {
+  constructor() {
+    super();
+    this.state = {
+      'display': 'none',
+      'handle': null,
+      'records': [],
+    };
+    contribution_list_this = this;
+  }
+
+  async sync(handle) {
+    const response = await fetch(`${NODE_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
+    const result = await response.json();
+    console.log(result);
+    // if(result['records'].length > 0){
+      this.setState({
+        'display': 'block',
+        'handle': handle,
+        'records': result['records'],
+      });
+    // }
+  }
+
+  render() {
+    const list = this.state.records.map((i) =>{
+      return e('div',
+        { onClick: this.click, key: i[0] },
+        `${i[0]} ${parseFloat(ethers.formatEther(i[1])).toFixed(4)} ${parseFloat(ethers.formatEther(i[2])).toFixed(4)} ${parseFloat(ethers.formatEther(i[3])).toFixed(4)}`
+      )
+    })
+    return e('div', {
+      style: {display: this.state.display},
+      className: 'box'
+    }, e('div', {}, `${this.state.handle}`), list);
+  }
+}
+
+async function switch_chain() {
+  try {
+    await ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [{
+        chainId: CHAIN_ID,
+        chainName: CHAIN_NAME,
+        nativeCurrency: {
+          name: TOKEN_NAME,
+          symbol: TOKEN_SYMBOL, // 2-6 characters long
+          decimals: 18
+        },
+        rpcUrls: [RPC_URL],
+      }]
+    });
+  } catch (error) {
+      // you may need to disable other extension before use Metamask
+      // help_extension();
+  }
+
+  try {
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: CHAIN_ID }],
+    });
+  } catch (error) {
+    // you may need to disable other extension before use Metamask
+    // help_extension();
+  }
+
+}
+
+const metamask_connect = createRoot(document.getElementById('metamask_connect'));
+// metamask_connect.render(e(StrictMode, null, e(Button)));
+metamask_connect.render(e(MetamaskConnect));
+
+const handle_list = createRoot(document.getElementById('handle_list'));
+handle_list.render(e(HandleList));
+
+const contribution_list = createRoot(document.getElementById('contribution_list'));
+contribution_list.render(e(ContributionList));
+
+let provider1 = new ethers.BrowserProvider(window.ethereum);
+// let powid_contract = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, provider1);
+let usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+
+metamask_connect2.addEventListener('click', () => {
+  metamask_connect_this.login();
+});
+
+window.onload = async () => {
+  const chain_id = await window.ethereum.request({method: 'eth_chainId'})
+  console.log(chain_id);
+  if(chain_id != CHAIN_ID){
+    switch_chain();
+  }
+
+  if(metamask_connect_this){
+    metamask_connect_this.sync();
+  }
+}
+
+window.ethereum.on('accountsChanged', (accounts) => {
+  console.log(accounts[0]);
+  metamask_connect_this.sync();
+  handle_list_this.sync();
+  // contribution_list_this.sync();
+});
+
+
+window.ethereum.on('chainChanged', async (chain_id) => {
+  if(chain_id != CHAIN_ID){
+    switch_chain();
+  }
+
+  provider1 = new ethers.BrowserProvider(window.ethereum);
+  powid_contract = new ethers.Contract(PURCHASE_CONTRACT, PURCHASE_ABI, provider1);
+  usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+
+  if(metamask_connect_this){
+    console.log(chain_id);
+    metamask_connect_this.sync();
+  }
+});
+
+</script>
+</html>

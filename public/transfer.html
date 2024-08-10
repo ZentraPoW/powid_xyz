@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PoW ID</title>
+  <link rel="stylesheet" href="/static/bulma.min.css">
+<style>
+</style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="">
+          PoWID.xyz
+          <!-- <img src="../images/bulma.png" alt="Logo"> -->
+        </a>
+        <span class="navbar-burger burger" data-target="navbarMenu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+
+        <span id="metamask_connect2" class="navbar-burger" style="margin-inline-start: .5em; width: 6em;">
+          Connect
+        </span>
+      </div>
+      <div id="navbarMenu" class="navbar-menu">
+        <div class="navbar-end">
+          <div class="navbar-item" id="menu"></div>
+          <div class="navbar-item" id="metamask_connect">Connect</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-success is-fullheight">
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <div class="column is-4 is-offset-4" style="min-width: 420px;">
+          <h3 class="title has-text-black">PoW ID</h3>
+          <hr class="login-hr">
+          <p class="subtitle has-text-black">Update Private Key for Security</p>
+          <div id="handle_list" style="margin: 100px 0 0 0;"></div>
+          <div id="contribution_list" style="margin: 100px 0 0 0;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="script_model"></div>
+</body>
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" integrity="sha512-8Q6Y9XnTbOE+JNvjBQwJ2H8S+UV4uA6hiRykhdtIyDYZ2TprdNmWOUaKdGzOhyr4dCyk287OejbPvwl7lrfqrQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.development.js" integrity="sha512-m7nhpWHotpucPI37I4lPovL28Bm2BhAMV8poF3F8Z9oOEZ3jlxGzkgvG0EMt1mVL1xydr1erlBbmN90js/ssUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" integrity="sha512-MOCpqoRoisCTwJ8vQQiciZv0qcpROCidek3GTFS6KTk2+y7munJIlKCVkFCYY+p3ErYFXCjmFjnfTTRSC1OHWQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.development.min.js" integrity="sha512-I5GJQRKGdj2miDs8ComgARfiAQiZJo/43YasH22qtweoG+YRXLTDYegxC/vPgw/ERxRzww/F4l4+8UiMmI20sw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script type="module">
+import { ethers } from "/static/ethers-6.11.1.js";
+
+const { createElement: e, Component, Fragment, useState } = React;
+const { createRoot } = ReactDOM;
+
+const HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_';
+
+
+let CHAIN_ID;
+let CHAIN_NAME;
+let RPC_URL;
+let NODE_HOST;
+const TOKEN_NAME = 'ETH';
+const TOKEN_SYMBOL = 'ETH';
+
+if(window.location.hostname == 'testnet.powid.xyz'){
+  CHAIN_ID = '0x70d';
+  CHAIN_NAME = 'ChainEX';
+  RPC_URL = 'https://testrpc.powid.xyz';
+  NODE_HOST = 'http://testnode.powid.xyz';
+}else{
+  RPC_URL = 'http://127.0.0.1:8045';
+  CHAIN_ID = '0x70d';
+  CHAIN_NAME = 'Trade Test';
+  NODE_HOST = 'http://127.0.0.1:8090';
+}
+
+// var handle_reg_this = null;
+var metamask_connect_this = null;
+var handle_list_this = null;
+var workspace_this = null;
+
+const metamask_connect2 = document.getElementById('metamask_connect2');
+const navbar_menu = document.getElementById('navbarMenu');
+
+class MetamaskConnect extends Component {
+  constructor() {
+    super();
+    this.state = {
+      addr: null,
+      handle: null,
+    };
+    metamask_connect_this = this;
+  }
+
+  componentDidMount() {
+    this.sync();
+  }
+
+  async sync() {
+    const accounts = await window.ethereum.request({method: 'eth_accounts'});
+    if (accounts.length) {
+      console.log(accounts[0]);
+      metamask_connect_this.setState({'addr': accounts[0]});
+      metamask_connect2.style.display = 'none';
+      navbar_menu.style.display = 'block';
+
+      const response = await fetch(`${NODE_HOST}/api/pid_default?addr=${accounts[0]}`, {method: "GET"});
+      const result = await response.json();
+      console.log(result);
+      metamask_connect_this.setState({'handle': result['handle']});
+    }
+  }
+
+  async login() {
+    const signer = await provider1.getSigner();
+    const accounts = await provider1.send("eth_requestAccounts", []);
+
+    // console.log(await window.ethereum.request({method: 'eth_accounts'}));
+    if (accounts.length) {
+      metamask_connect_this.setState({'addr': accounts[0]});
+      // handle_reg_this.setState({'handle_input_readonly': false});
+    }
+
+    // console.log(metamask_connect_this);
+    metamask_connect_this.sync();
+    handle_list_this.sync();
+  }
+
+  render() {
+    return e('div', {},
+      e('button',
+        { onClick: this.login },
+        `${this.state.addr || 'Connect'}`
+      ),
+      e('div',
+        { },
+        `Default: ${this.state.handle || 'Not set yet!'}`
+      ),
+    )
+  }
+}
+
+class HandleList extends Component {
+  constructor() {
+    super();
+    this.state = {
+      'display': 'none',
+      'handles': [],
+    };
+    handle_list_this = this;
+  }
+
+  componentDidMount() {
+    this.sync();
+  }
+
+  async sync() {
+    const accounts = await window.ethereum.request({method: 'eth_accounts'});
+    if (accounts.length) {
+      const response = await fetch(`${NODE_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
+      const result = await response.json();
+      console.log(result);
+      if(result['handles'].length > 0){
+        this.setState({
+          'display': 'block',
+          'handles': result['handles'],
+        });
+      }
+    }
+  }
+
+  async click(e) {
+    console.log(e.target.innerText);
+    workspace_this.sync(e.target.innerText);
+  }
+
+  render() {
+    const list = this.state.handles.map((i) =>{
+      return e('div',
+        { onClick: this.click, key: i },
+        `${i}`
+      )
+    })
+    return e('div', {
+      style: {display: this.state.display},
+      className: 'box'
+    }, list);
+  }
+}
+
+class Workspace extends Component {
+  constructor() {
+    super();
+    this.state = {
+      'display': 'none',
+      'handle': null,
+      'records': [],
+    };
+    workspace_this = this;
+  }
+
+  async click(e) {
+    console.log(e.target.innerText);
+    // workspace_this.sync(e.target.innerText);
+  }
+
+  async set_default(e) {
+    console.log(workspace_this.handle);
+    const signer = await provider1.getSigner();
+    const accounts = await provider1.send("eth_requestAccounts", []);
+
+    const data = {'p': 'minus', 'f': 'handle_set_default', 'a': [workspace_this.handle]};
+    const json = JSON.stringify(data);
+
+    const tx = await signer.sendTransaction({
+      to: accounts[0],
+      data: ethers.hexlify(new TextEncoder().encode(json))
+    });
+
+  }
+
+  async sync(handle) {
+    const response = await fetch(`${NODE_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
+    const result = await response.json();
+    this.handle = handle;
+    console.log(result);
+    // if(result['records'].length > 0){
+      this.setState({
+        'display': 'block',
+        'handle': handle,
+        'records': result['records'],
+      });
+    // }
+  }
+
+  render() {
+    const list = this.state.records.map((i) =>{
+      return e('div',
+        { onClick: this.click, key: i[0] },
+        `${i[0]} ${parseFloat(ethers.formatEther(i[1])).toFixed(4)} ${parseFloat(ethers.formatEther(i[2])).toFixed(4)} ${parseFloat(ethers.formatEther(i[3])).toFixed(4)}`
+      )
+    })
+    return e('div', {
+      style: {display: this.state.display},
+      className: 'box'
+    }, e('div', {}, `${this.state.handle}`),
+       e('button', {className: 'button', onClick: this.set_default}, `Make Default`), 
+       list);
+  }
+}
+
+const metamask_connect = createRoot(document.getElementById('metamask_connect'));
+// metamask_connect.render(e(StrictMode, null, e(Button)));
+metamask_connect.render(e(MetamaskConnect));
+
+const handle_list = createRoot(document.getElementById('handle_list'));
+handle_list.render(e(HandleList));
+
+const contribution_list = createRoot(document.getElementById('contribution_list'));
+contribution_list.render(e(Workspace));
+
+let provider1 = new ethers.BrowserProvider(window.ethereum);
+
+/*fetch("./menu.html")
+  .then(response => {
+    return response.text()
+  })
+  .then(data => {
+    document.querySelector("#menu").innerHTML = data;
+  }); */
+
+metamask_connect2.addEventListener('click', () => {
+  metamask_connect_this.login();
+});
+
+async function switch_chain() {
+  try {
+    await ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [{
+        chainId: CHAIN_ID,
+        chainName: CHAIN_NAME,
+        nativeCurrency: {
+          name: TOKEN_NAME,
+          symbol: TOKEN_SYMBOL, // 2-6 characters long
+          decimals: 18
+        },
+        rpcUrls: [RPC_URL],
+      }]
+    });
+  } catch (error) {
+      // you may need to disable other extension before use Metamask
+      // help_extension();
+  }
+
+  try {
+    await ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: CHAIN_ID }],
+    });
+  } catch (error) {
+    // you may need to disable other extension before use Metamask
+    // help_extension();
+  }
+
+}
+
+window.onload = async () => {
+  const chain_id = await window.ethereum.request({method: 'eth_chainId'})
+  console.log(chain_id);
+  if(chain_id != CHAIN_ID){
+    switch_chain();
+  }
+
+  if(metamask_connect_this){
+    metamask_connect_this.sync();
+  }
+}
+
+window.ethereum.on('accountsChanged', (accounts) => {
+  // Time to reload your interface with accounts[0]!
+  console.log(accounts[0]);
+  metamask_connect_this.sync();
+  handle_list_this.sync();
+  // workspace_this.sync();
+});
+
+window.ethereum.on('chainChanged', function(chain_id) {
+  console.log(chain_id);
+  if(chain_id != CHAIN_ID){
+    switch_chain();
+  }
+
+  if(metamask_connect_this){
+    metamask_connect_this.sync();
+  }
+});
+
+</script>
+</html>
