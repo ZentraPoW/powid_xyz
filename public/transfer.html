@@ -14,7 +14,7 @@
           PoWID.xyz
           <!-- <img src="../images/bulma.png" alt="Logo"> -->
         </a>
-        <span class="navbar-burger burger" data-target="navbarMenu">
+        <span class="navbar-burger burger" data-target="navbar_menu">
           <span></span>
           <span></span>
           <span></span>
@@ -24,7 +24,7 @@
           Connect
         </span>
       </div>
-      <div id="navbarMenu" class="navbar-menu">
+      <div id="navbar_menu" class="navbar-menu">
         <div class="navbar-end">
           <div class="navbar-item" id="menu"></div>
           <div class="navbar-item" id="metamask_connect">Connect</div>
@@ -33,7 +33,7 @@
     </div>
   </nav>
 
-  <div id="metamask-banner" class="notification is-warning is-light" style="display: none; margin: 1rem;">
+  <div id="metamask_missing_banner" class="notification is-warning is-light" style="display: none; margin: 1rem;">
     <button class="delete"></button>
     <strong>MetaMask not detected!</strong> Please install MetaMask to use this application.
     <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">Download MetaMask</a>
@@ -73,7 +73,7 @@ const HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_';
 let CHAIN_ID;
 let CHAIN_NAME;
 let RPC_URL;
-let NODE_HOST;
+let INDEXER_HOST;
 const TOKEN_NAME = 'ETH';
 const TOKEN_SYMBOL = 'ETH';
 
@@ -81,12 +81,12 @@ if(window.location.hostname == 'test.powid.xyz'){
   CHAIN_ID = '0x70d';
   CHAIN_NAME = 'ChainEX';
   RPC_URL = 'https://testrpc.powid.xyz';
-  NODE_HOST = 'http://testnode.powid.xyz';
+  INDEXER_HOST = 'http://testindexer.zentra.dev';
 }else{
-  RPC_URL = 'http://127.0.0.1:8045';
   CHAIN_ID = '0x70d';
   CHAIN_NAME = 'Trade Test';
-  NODE_HOST = 'http://127.0.0.1:8090';
+  RPC_URL = 'http://127.0.0.1:8045';
+  INDEXER_HOST = 'http://127.0.0.1:8090';
 }
 
 class MetamaskConnect extends Component {
@@ -111,7 +111,7 @@ class MetamaskConnect extends Component {
       metamask_connect2.style.display = 'none';
       navbar_menu.style.display = 'block';
 
-      const response = await fetch(`${NODE_HOST}/api/pid_default?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${INDEXER_HOST}/api/pid_default?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       metamask_connect_this.setState({'handle': result['handle']});
@@ -164,7 +164,7 @@ class HandleList extends Component {
   async sync() {
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
     if (accounts.length) {
-      const response = await fetch(`${NODE_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${INDEXER_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       if(result['handles'].length > 0){
@@ -227,7 +227,7 @@ class Workspace extends Component {
   }
 
   async sync(handle) {
-    const response = await fetch(`${NODE_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
+    const response = await fetch(`${INDEXER_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
     const result = await response.json();
     this.handle = handle;
     console.log(result);
@@ -319,14 +319,14 @@ const contribution_list = createRoot(document.getElementById('contribution_list'
 contribution_list.render(e(Workspace));
 
 const metamask_connect2 = document.getElementById('metamask_connect2');
-const navbar_menu = document.getElementById('navbarMenu');
+const navbar_menu = document.getElementById('navbar_menu');
 
 window.onload = async () => {
   if (window.ethereum && window.ethereum.isMetaMask) {
     console.log("MetaMask is installed");
   } else {
     console.log("MetaMask is not installed");
-    document.getElementById('metamask-banner').style.display = 'block';
+    document.getElementById('metamask_missing_banner').style.display = 'block';
     return
   }
 

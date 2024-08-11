@@ -14,7 +14,7 @@
           PoWID.xyz
           <!-- <img src="../images/bulma.png" alt="Logo"> -->
         </a>
-        <span class="navbar-burger burger" data-target="navbarMenu">
+        <span class="navbar-burger burger" data-target="navbar_menu">
           <span></span>
           <span></span>
           <span></span>
@@ -24,7 +24,7 @@
           Connect
         </span>
       </div>
-      <div id="navbarMenu" class="navbar-menu">
+      <div id="navbar_menu" class="navbar-menu">
         <div class="navbar-end">
           <div class="navbar-item" id="metamask_connect">Connect</div>
         </div>
@@ -32,7 +32,7 @@
     </div>
   </nav>
 
-  <div id="metamask-banner" class="notification is-warning is-light" style="display: none; margin: 1rem;">
+  <div id="metamask_missing_banner" class="notification is-warning is-light" style="display: none; margin: 1rem;">
     <button class="delete"></button>
     <strong>MetaMask not detected!</strong> Please install MetaMask to use this application.
     <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer">Download MetaMask</a>
@@ -104,27 +104,27 @@ let USDT_CONTRACT;
 let CHAIN_ID;
 let CHAIN_NAME;
 let RPC_URL;
-let NODE_HOST;
+let INDEXER_HOST;
 const TOKEN_NAME = 'ETH';
 const TOKEN_SYMBOL = 'ETH';
 
 if(window.location.hostname == 'test.powid.xyz'){
   CHAIN_ID = '0xa';
   CHAIN_NAME = 'OP';
-  RPC_URL = 'https://mainnet.optimism.io';
   // PURCHASE_CONTRACT = '0x7CdFB1fbf7d4E314E6c54577781DC7A7B00f2C9d'; // USDT Purchase
   // PURCHASE_CONTRACT = '0xaEa9a28e079CcFD6Be1AB999395265d42cdE315F'; // old PoWIDPurchase
   POWID_CONTRACT = '0xa8691bEaEE825Ace9F620Bed657Fa742Db134892';
   USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
-  NODE_HOST = 'https://testnode.powid.xyz:8090';
+  RPC_URL = 'https://mainnet.optimism.io';
+  INDEXER_HOST = 'https://testindexer.zentra.dev';
 }else{
-  RPC_URL = 'http://127.0.0.1:8545';
   CHAIN_ID = '0x7a69';
   CHAIN_NAME = 'Hardhat';
   // PURCHASE_CONTRACT = '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'; // Mock Purchase on harthat 
   PURCHASE_REFERRAL_CONTRACT = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'; // Mock PurchaseReferral on harthat 
   USDT_CONTRACT = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Mock USDT on harthat
-  NODE_HOST = 'http://127.0.0.1:8090';
+  RPC_URL = 'http://127.0.0.1:8545';
+  INDEXER_HOST = 'http://127.0.0.1:8090';
 }
 
 class MetamaskConnect extends Component {
@@ -148,7 +148,7 @@ class MetamaskConnect extends Component {
       metamask_connect2.style.display = 'none';
       navbar_menu.style.display = 'block';
 
-      const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${INDEXER_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       if(result['error']){
@@ -265,7 +265,7 @@ class HandleReg extends Component {
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
 
     if (accounts.length) {
-      const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${INDEXER_HOST}/api/pid_whitelist_proof?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       if(result['error']){
@@ -361,7 +361,7 @@ class WhitelistClaim extends Component {
     console.log(whitelist_search_this.addr);
 
     // const accounts = await window.ethereum.request({method: 'eth_accounts'});
-    const response = await fetch(`${NODE_HOST}/api/pid_whitelist_proof?addr=${whitelist_search_this.addr}`, {method: "GET"});
+    const response = await fetch(`${INDEXER_HOST}/api/pid_whitelist_proof?addr=${whitelist_search_this.addr}`, {method: "GET"});
     const result = await response.json();
     // console.log(result);
     if(result['error']){
@@ -438,7 +438,7 @@ class HandleList extends Component {
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
     console.log(accounts);
     if (accounts.length) {
-      const response = await fetch(`${NODE_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${INDEXER_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       if(result['handles'].length > 0){
@@ -534,7 +534,7 @@ const handle_list = createRoot(document.getElementById('handle_list'));
 handle_list.render(e(HandleList));
 
 const metamask_connect2 = document.getElementById('metamask_connect2');
-const navbar_menu = document.getElementById('navbarMenu');
+const navbar_menu = document.getElementById('navbar_menu');
 
 metamask_connect2.addEventListener('click', () => {
   metamask_connect_this.login();
@@ -545,7 +545,7 @@ window.onload = async () => {
     console.log("MetaMask is installed");
   } else {
     console.log("MetaMask is not installed");
-    document.getElementById('metamask-banner').style.display = 'block';
+    document.getElementById('metamask_missing_banner').style.display = 'block';
     return
   }
 
@@ -553,7 +553,7 @@ window.onload = async () => {
     console.log("MetaMask is installed");
   } else {
     console.log("MetaMask is not installed");
-    document.getElementById('metamask-banner').style.display = 'block';
+    document.getElementById('metamask_missing_banner').style.display = 'block';
     return
   }
 
