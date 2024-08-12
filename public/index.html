@@ -118,10 +118,15 @@ pre code {
 
 <script type="module">
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/ethers.min.js";
+
+const { createElement: e, Component, Fragment, useState } = React;
+const { createRoot } = ReactDOM;
+
 import { 
   CHAIN_ID,
   CHAIN_NAME,
   PURCHASE_CONTRACT,
+  PURCHASE_REFERRAL_CONTRACT,
   POWID_CONTRACT,
   USDT_CONTRACT,
   RPC_URL,
@@ -130,9 +135,6 @@ import {
   PURCHASE_ABI,
   USDT_ABI,
 } from "/setting.js";
-
-const { createElement: e, Component, Fragment, useState } = React;
-const { createRoot } = ReactDOM;
 
 const TOKEN_NAME = 'ETH';
 const TOKEN_SYMBOL = 'ETH';
@@ -452,7 +454,7 @@ class ScriptModel extends Component {
           ),
           e('code',
             {id: 'install_cmd'},
-            `python -c "import os, pip; pip.main(['install', 'requests']); import hashlib, requests; h='e89e3ce2e0c0f5dda31b1e1b291d61a16c56086d946e995d410dac8e3c145c7d'; c=requests.get('http://test.powid.xyz/miner.py').text.encode(); assert hashlib.sha256(c).hexdigest()==h; open('miner.py', 'wb').write(c)"`
+            `python -c "import os, pip; pip.main(['install', 'requests']); import hashlib, requests; h='e89e3ce2e0c0f5dda31b1e1b291d61a16c56086d946e995d410dac8e3c145c7d'; c=requests.get('https://test.powid.xyz/miner.py').text.encode(); assert hashlib.sha256(c).hexdigest()==h; open('miner.py', 'wb').write(c)"`
           ),
           e('button',
             { className: 'button bd-copy', onClick: this.install_cmd_copy }, 'Copy'

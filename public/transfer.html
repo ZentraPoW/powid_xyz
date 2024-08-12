@@ -67,27 +67,22 @@ import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.2/eth
 const { createElement: e, Component, Fragment, useState } = React;
 const { createRoot } = ReactDOM;
 
-const HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_';
+import { 
+  CHAIN_ID,
+  CHAIN_NAME,
+  PURCHASE_CONTRACT,
+  PURCHASE_REFERRAL_CONTRACT,
+  POWID_CONTRACT,
+  USDT_CONTRACT,
+  RPC_URL,
+  INDEXER_HOST,
+  HANDLE_LETTERS,
+  PURCHASE_ABI,
+  USDT_ABI,
+} from "/setting.js";
 
-
-let CHAIN_ID;
-let CHAIN_NAME;
-let RPC_URL;
-let INDEXER_HOST;
 const TOKEN_NAME = 'ETH';
 const TOKEN_SYMBOL = 'ETH';
-
-if(window.location.hostname == 'test.powid.xyz'){
-  CHAIN_ID = '0x70d';
-  CHAIN_NAME = 'ChainEX';
-  RPC_URL = 'https://testrpc.powid.xyz';
-  INDEXER_HOST = 'http://testindexer.zentra.dev';
-}else{
-  CHAIN_ID = '0x70d';
-  CHAIN_NAME = 'Trade Test';
-  RPC_URL = 'http://127.0.0.1:8045';
-  INDEXER_HOST = 'http://127.0.0.1:8090';
-}
 
 class MetamaskConnect extends Component {
   constructor() {
