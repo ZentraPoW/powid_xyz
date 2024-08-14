@@ -42,8 +42,8 @@ const PURCHASE_ABI = [
 const PURCHASE_REFERRAL_ABI = [
   "function whitelist_used(address _addr) public view returns (bool)",
   "function available(bytes memory _handle) public view returns (bool)",
-  "function bonusOf(bytes memory _handle) public view returns (uint256) ",
-  "function purchase_with_bonus(bytes memory _handle, bytes memory _referral) public ",
+  "function bonusOf(bytes memory _handle) public view returns (uint256)",
+  "function purchase_with_bonus(bytes memory _handle, bytes memory _referral) public",
   "function purchase_by_referral(bytes memory _handle, bytes memory _referral) public",
   "function withdraw() public",
   "function change_owner(address _owner) public",

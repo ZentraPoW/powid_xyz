@@ -26,7 +26,7 @@ assert set(handle) <= set(HANDLE_LETTERS)
 if '-d' in sys.argv:
     HOST = 'http://127.0.0.1:8070'
 else:
-    HOST = 'https://testrpc.zentra.dev'
+    HOST = 'https://submit.powid.xyz'
 
 while True:
     req = requests.get('%s/get_work?handle=%s' % (HOST, handle))
