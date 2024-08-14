@@ -19,7 +19,7 @@ if(window.location.hostname == 'test.powid.xyz'){
   USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
   RPC_URL = 'https://mainnet.optimism.io';
   INDEXER_HOST = 'https://testindexer.zentra.dev';
-  REFERRAL_PREFIX = 'https://test.powid.xyz/referral?';
+  REFERRAL_PREFIX = 'https://test.powid.xyz/referral.html?';
 }else{
   CHAIN_ID = '0x7a69';
   CHAIN_NAME = 'Hardhat';
