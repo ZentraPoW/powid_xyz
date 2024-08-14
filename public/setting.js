@@ -33,7 +33,20 @@ const HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_';
 
 const PURCHASE_ABI = [
   "function purchase(bytes memory _handle) public",
-  "function available(bytes memory _handle) public view returns (uint256)"
+  "function available(bytes memory _handle) public view returns (uint256)",
+];
+
+const PURCHASE_REFERRAL_ABI = [
+  "function available(bytes memory _handle) public view returns (bool)",
+  "function bonusOf(bytes memory _handle) public view returns (uint256) ",
+  "function purchase_with_bonus(bytes memory _handle, bytes memory _referral) public ",
+  "function purchase_by_referral(bytes memory _handle, bytes memory _referral) public",
+  "function withdraw() public",
+  "function change_owner(address _owner) public",
+  "function set_live(bool _live) public",
+  "function set_price_and_bonus(uint256 _price_discount, uint256 _bonus_referral) public",
+  "function reg_with_whitelist(bytes memory _handle, bytes32[] memory proofs) public",
+  "function set_whitelist_root(bytes32 _root) public",
 ];
 
 const USDT_ABI = [
@@ -42,7 +55,7 @@ const USDT_ABI = [
   "function transferFrom(address from, address to, uint256 value) external returns (bool)",
   "function decimals() view returns (string)",
   "function symbol() view returns (string)",
-  "function balanceOf(address addr) view returns (uint)"
+  "function balanceOf(address addr) view returns (uint)",
 ];
 
 export {
@@ -56,5 +69,6 @@ export {
   INDEXER_HOST,
   HANDLE_LETTERS,
   PURCHASE_ABI,
+  PURCHASE_REFERRAL_ABI,
   USDT_ABI,
 }
