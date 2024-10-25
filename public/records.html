@@ -204,7 +204,10 @@ class MetamaskConnect extends Component {
 class HandleList extends Component {
   constructor() {
     super();
+    // this.currnet_handle = window.location.hash.replace('#', ''),
+    // console.log(this.currnet_handle);
     this.state = {
+      'currnet_handle': window.location.hash.replace('#', ''),
       'display': 'none',
       'handles': [],
     };
@@ -231,12 +234,15 @@ class HandleList extends Component {
   }
 
   async click(e) {
-    console.log(e.target.innerText);
+    // console.log(e.target.innerText);
+    window.location.hash = e.target.innerText;
+    // handle_list_this.currnet_handle = e.target.innerText;
+    // console.log(handle_list_this.currnet_handle);
+    handle_list_this.setState({
+      'current_handle': e.target.innerText,
+    });
+    // console.log(handle_list_this.state.currnet_handle);
     contribution_list_this.sync(e.target.innerText);
-    // script_model_this.setState({
-    //   display: 'block',
-    //   handle: e.target.innerText,
-    // });
   }
 
   async go_reg(e) {
@@ -244,9 +250,11 @@ class HandleList extends Component {
   }
 
   render() {
+    const current_handle = window.location.hash.replace('#', '');
     const list = this.state.handles.map((i) =>{
+      // console.log(i, current_handle);
       return e('div',
-        { onClick: this.click, key: i },
+        { onClick: this.click, key: i, style: {backgroundColor: current_handle == `${i}` ? 'yellow' : 'transparent'} },
         `${i}`
       )
     })
