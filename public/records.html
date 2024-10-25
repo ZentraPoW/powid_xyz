@@ -97,7 +97,7 @@ pre code {
         <div class="column is-4 is-offset-4" style="min-width: 420px;">
           <h3 class="title has-text-black">POWid</h3>
           <hr class="login-hr">
-          <p class="subtitle has-text-black">PoW contribution of ID</p>
+          <p class="subtitle has-text-black">PoW contribution</p>
           <div id="handle_list" style="margin: 100px 0 0 0;"></div>
           <div id="contribution_list" style="margin: 100px 0 0 0;"></div>
         </div>
@@ -230,6 +230,7 @@ class HandleList extends Component {
           'handles': result['handles'],
         });
       }
+      contribution_list_this.sync(window.location.hash.replace('#', ''));
     }
   }
 
@@ -293,15 +294,27 @@ class ContributionList extends Component {
 
   render() {
     const list = this.state.records.map((i) =>{
-      return e('div',
-        { onClick: this.click, key: i[0] },
-        `${i[0]} ${parseFloat(ethers.formatEther(i[1])).toFixed(4)} ${parseFloat(ethers.formatEther(i[2])).toFixed(4)} ${parseFloat(ethers.formatEther(i[3])).toFixed(4)}`
+      return e('tr', { key: i[0] },
+        e('td', null, `${i[0]}`),
+        e('td', null, `${parseFloat(ethers.formatEther(i[1])).toFixed(4)}`),
+        e('td', null, `${parseFloat(ethers.formatEther(i[2])).toFixed(3)}`),
+        e('td', null, `${parseFloat(ethers.formatEther(i[3])).toFixed(2)}`)
       )
     })
-    return e('div', {
+    return e('table', {
       style: {display: this.state.display},
       className: 'box'
-    }, e('div', {}, `${this.state.handle}`), list);
+    }, 
+    e('thead', null, 
+      e('tr', null, 
+        e('th', {style: {padding: '0 10px 0 10px'}}, 'Block no'),
+        e('th', {style: {padding: '0 10px 0 10px'}}, 'Contribution'),
+        e('th', {style: {padding: '0 10px 0 10px'}}, 'Bonuce'),
+        e('th', {style: {padding: '0 10px 0 10px'}}, 'Total')
+      )
+    ),
+    e('tbody', null, list)
+    );
   }
 }
 
