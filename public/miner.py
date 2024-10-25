@@ -3,6 +3,7 @@ import sys
 import hashlib
 import binascii
 import struct
+import datetime
 
 import requests
 
@@ -19,20 +20,15 @@ diff1 = 0x00000000ffff0000000000000000000000000000000000000000000000000000
 HANDLE_LETTERS = 'abcdefghijklmnopqrstuvwxyz0123456789_'
 
 handle = sys.argv[1]
-print(handle)
+print('POWid', handle)
 assert len(handle) > 4 and len(handle) < 42
 assert set(handle) <= set(HANDLE_LETTERS)
 
-if '-d' in sys.argv:
-    HOST = 'http://127.0.0.1:8070'
-else:
-    HOST = 'https://submit.powid.xyz'
-
+HOST = 'https://submit.powid.xyz'
 while True:
     req = requests.get('%s/get_work?handle=%s' % (HOST, handle))
     header_hex = req.text
-    print('header_hex')
-    print(header_hex)
+    print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Header', header_hex)
 
     nonce = 0
     header = binascii.unhexlify(header_hex)
@@ -56,15 +52,17 @@ while True:
             # print(h[::-1].hex())
             # print(h_int, nonce)
             req = requests.post('%s/submit_work?handle=%s&nonce=%s' % (HOST, handle, nonce))
-            # print('Submit PoW')
+            print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Submit PoW', nonce)
             if req.text != header_hex:
                 print('New Block')
                 print(req.text)
                 break
 
-        if nonce % 10000000 == 0:
-            # print(h[::-1].hex())
-            # print(nonce)
-            pass
-            # print(d_int, nonce)
+        if nonce % 10000000 == 0 and nonce > 0:
+            req = requests.get('%s/get_work?handle=%s' % (HOST, handle))
+            print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Checking New', nonce)
+            if req.text != header_hex:
+                print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'New Block')
+                # print(req.text)
+                break
         nonce += 1
