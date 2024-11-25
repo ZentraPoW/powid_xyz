@@ -7,6 +7,7 @@ let POWID_CONTRACT;
 let USDT_CONTRACT;
 let RPC_URL;
 let INDEXER_HOST;
+let SUMBIT_HOST;
 let REFERRAL_PREFIX;
 
 if(window.location.hostname == 'test.powid.xyz'){
@@ -19,6 +20,7 @@ if(window.location.hostname == 'test.powid.xyz'){
   USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
   RPC_URL = 'https://mainnet.optimism.io';
   INDEXER_HOST = 'https://testindexer.zentra.dev';
+  SUBMIT_HOST = 'https://submit.powid.xyz';
   REFERRAL_PREFIX = 'https://test.powid.xyz/referral.html?';
 }else{
   CHAIN_ID = '0x7a69';
@@ -28,6 +30,7 @@ if(window.location.hostname == 'test.powid.xyz'){
   USDT_CONTRACT = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Mock USDT on harthat
   RPC_URL = 'http://127.0.0.1:8545';
   INDEXER_HOST = 'http://127.0.0.1:8090';
+  SUBMIT_HOST = 'https://submit.powid.xyz';
   REFERRAL_PREFIX = 'http://127.0.0.1:8070/referral?';
 }
 
