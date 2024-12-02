@@ -103,7 +103,7 @@ import {
   POWID_CONTRACT,
   USDT_CONTRACT,
   RPC_URL,
-  INDEXER_HOST,
+  BACKEND_HOST,
   SUBMIT_HOST,
   HANDLE_LETTERS,
   PURCHASE_ABI,
@@ -198,7 +198,7 @@ class HandleList extends Component {
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
     console.log(accounts);
     if (accounts.length) {
-      const response = await fetch(`${INDEXER_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${BACKEND_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       if(result['handles'].length > 0){
@@ -251,7 +251,7 @@ class ReferralLink extends Component {
   }
 
   async sync(handle) {
-    const response = await fetch(`${INDEXER_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
+    const response = await fetch(`${BACKEND_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
     const result = await response.json();
     console.log(result);
     // if(result['records'].length > 0){

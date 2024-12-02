@@ -6,7 +6,7 @@ let PURCHASE_REFERRAL_CONTRACT;
 let POWID_CONTRACT;
 let USDT_CONTRACT;
 let RPC_URL;
-let INDEXER_HOST;
+let BACKEND_HOST;
 let SUBMIT_HOST;
 let REFERRAL_PREFIX;
 
@@ -22,7 +22,8 @@ if(window.location.hostname == 'test.powid.xyz'){
   // POWID_CONTRACT = '0xa8691bEaEE825Ace9F620Bed657Fa742Db134892';
   USDT_CONTRACT = '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'; // USDT on OP
   RPC_URL = 'https://mainnet.optimism.io';
-  INDEXER_HOST = 'https://testindexer.zentra.dev';
+  // INDEXER_HOST = 'https://testindexer.zentra.dev';
+  BACKEND_HOST = 'https://submit.powid.xyz';
   SUBMIT_HOST = 'https://submit.powid.xyz';
   REFERRAL_PREFIX = 'https://test.powid.xyz/referral.html?';
 }else{
@@ -32,7 +33,7 @@ if(window.location.hostname == 'test.powid.xyz'){
   PURCHASE_REFERRAL_CONTRACT = '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'; // Mock PurchaseReferral on harthat 
   USDT_CONTRACT = '0x5FbDB2315678afecb367f032d93F642f64180aa3'; // Mock USDT on harthat
   RPC_URL = 'http://127.0.0.1:8545';
-  INDEXER_HOST = 'http://127.0.0.1:8090';
+  BACKEND_HOST = 'http://127.0.0.1:8070';
   SUBMIT_HOST = 'https://submit.powid.xyz';
   REFERRAL_PREFIX = 'http://127.0.0.1:8070/referral?';
 }
@@ -76,7 +77,8 @@ export {
   POWID_CONTRACT,
   USDT_CONTRACT,
   RPC_URL,
-  INDEXER_HOST,
+  BACKEND_HOST,
+  SUBMIT_HOST,
   REFERRAL_PREFIX,
   HANDLE_LETTERS,
   PURCHASE_ABI,

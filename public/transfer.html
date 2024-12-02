@@ -75,7 +75,7 @@ import {
   POWID_CONTRACT,
   USDT_CONTRACT,
   RPC_URL,
-  INDEXER_HOST,
+  BACKEND_HOST,
   SUBMIT_HOST,
   HANDLE_LETTERS,
   PURCHASE_ABI,
@@ -107,7 +107,7 @@ class MetamaskConnect extends Component {
       metamask_connect2.style.display = 'none';
       navbar_menu.style.display = 'block';
 
-      const response = await fetch(`${INDEXER_HOST}/api/pid_default?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${BACKEND_HOST}/api/pid_default?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       metamask_connect_this.setState({'handle': result['handle']});
@@ -160,7 +160,7 @@ class HandleList extends Component {
   async sync() {
     const accounts = await window.ethereum.request({method: 'eth_accounts'});
     if (accounts.length) {
-      const response = await fetch(`${INDEXER_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
+      const response = await fetch(`${BACKEND_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
       if(result['handles'].length > 0){
@@ -223,7 +223,7 @@ class Workspace extends Component {
   }
 
   async sync(handle) {
-    const response = await fetch(`${INDEXER_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
+    const response = await fetch(`${BACKEND_HOST}/api/pid_credit?handle=${handle}`, {method: "GET"});
     const result = await response.json();
     this.handle = handle;
     console.log(result);
