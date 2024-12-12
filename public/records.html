@@ -224,14 +224,21 @@ class HandleList extends Component {
     if (accounts.length) {
       const response = await fetch(`${BACKEND_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
-      console.log(result);
+      // console.log(result);
       if(result['handles'].length > 0){
+        var handle = window.location.hash.replace('#', '');
         this.setState({
           'display': 'block',
           'handles': result['handles'],
         });
+
+        if(handle.length < 5){
+          handle = result['handles'][0];
+        }
+        if(handle.length >= 5){
+          contribution_list_this.sync(handle);
+        }
       }
-      contribution_list_this.sync(window.location.hash.replace('#', ''));
     }
   }
 
