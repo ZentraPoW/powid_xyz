@@ -201,7 +201,7 @@ class HandleList extends Component {
       const response = await fetch(`${BACKEND_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
-      if(result['handles'].length > 0){
+      if(result['handles'] && result['handles'].length > 0){
         handle_list_this.setState({
           'display': 'block',
           'handles': result['handles'],

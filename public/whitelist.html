@@ -413,7 +413,7 @@ class HandleList extends Component {
       const response = await fetch(`${BACKEND_HOST}/api/pid_list?addr=${accounts[0]}`, {method: "GET"});
       const result = await response.json();
       console.log(result);
-      if(result['handles'].length > 0){
+      if(result['handles'] && result['handles'].length > 0){
         handle_list_this.setState({
           'display': 'block',
           'handles': result['handles'],
@@ -513,26 +513,26 @@ metamask_connect2.addEventListener('click', () => {
 });
 
 window.onload = async () => {
-  if (window.ethereum && window.ethereum.isMetaMask) {
-    console.log("MetaMask is installed");
-  } else {
-    console.log("MetaMask is not installed");
-    document.getElementById('metamask_missing_banner').style.display = 'block';
-    return
-  }
-
-  if (window.ethereum && window.ethereum.isMetaMask) {
-    console.log("MetaMask is installed");
-  } else {
-    console.log("MetaMask is not installed");
-    document.getElementById('metamask_missing_banner').style.display = 'block';
-    return
-  }
-
   provider = new ethers.JsonRpcProvider(RPC_URL);
+  whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider);
+
+  if (window.ethereum && window.ethereum.isMetaMask) {
+    console.log("MetaMask is installed");
+  } else {
+    console.log("MetaMask is not installed");
+    document.getElementById('metamask_missing_banner').style.display = 'block';
+  }
+
+  if (window.ethereum && window.ethereum.isMetaMask) {
+    console.log("MetaMask is installed");
+  } else {
+    console.log("MetaMask is not installed");
+    document.getElementById('metamask_missing_banner').style.display = 'block';
+    return
+  }
+
   provider1 = new ethers.BrowserProvider(window.ethereum);
-  whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
-  usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+  // usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
 
   const chain_id = await window.ethereum.request({method: 'eth_chainId'})
   console.log(chain_id);
@@ -555,9 +555,9 @@ window.onload = async () => {
       switch_chain();
     }
 
-    provider1 = new ethers.BrowserProvider(window.ethereum);
-    whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider1);
-    usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
+    // provider1 = new ethers.BrowserProvider(window.ethereum);
+    // whitelist_contract = new ethers.Contract(PURCHASE_REFERRAL_CONTRACT, PURCHASE_REFERRAL_ABI, provider);
+    // usdt_contract = new ethers.Contract(USDT_CONTRACT, USDT_ABI, provider1);
 
     if(metamask_connect_this){
       console.log(chain_id);
