@@ -28,6 +28,22 @@
   margin: 10px 0;
 }
 
+.styled-link {
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding for the button-like appearance */
+    text-align: center; /* Centered text */
+    text-decoration: none; /* No underline */
+    display: inline-block; /* Inline-block for better layout */
+    font-size: 18px; /* Font size */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    cursor: pointer; /* Hand cursor on hover */
+}
+
+.styled-link:hover {
+    background-color: #495057; /* Lighter dark gray on hover */
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
 </style>
 </head>
 <body>
@@ -78,6 +94,8 @@
           </p> -->
           <div id="handle_list" style="margin: 100px 0 0 0;">
           </div>
+          <br>
+          <a class="styled-link" href="/">Run PoW to get credits</a>
           <div id="referral_link" style="margin: 100px 0 0 0;"></div>
         </div>
       </div>
@@ -220,9 +238,9 @@ class HandleList extends Component {
     });
   }
 
-  async go_reg(e) {
-    location.href = '/';
-  }
+  // async go_reg(e) {
+  //   location.href = '/';
+  // }
 
   render() {
     const list = this.state.handles.map((i) =>{
@@ -232,11 +250,10 @@ class HandleList extends Component {
       )
     })
     return e('div', {
-      style: {display: this.state.display},
-      className: 'box'
-    }, 
-    list,
-    e('a', {onClick: this.go_reg}, 'Run PoW to get credits'),
+        style: {display: this.state.display},
+        className: 'box'
+      }, 
+      list,
     );
   }
 }
