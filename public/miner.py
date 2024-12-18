@@ -58,6 +58,7 @@ while True:
                     print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'New Block')
                     break
             nonce += 1
+        seconds_waiting = 2
 
     except:
         time.sleep(seconds_waiting)

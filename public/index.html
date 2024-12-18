@@ -508,7 +508,7 @@ class ScriptModel extends Component {
           ),
           e('code',
             {id: 'install_cmd'},
-            `python -c "import os, pip; pip.main(['install', 'requests']); import hashlib, requests; h='dda66aea6bdaa56e5330adece25bfa1d1df0eec5dcbd883b817a45db3a0045bb'; c=requests.get('https://test.powid.xyz/miner.py').text.encode(); assert hashlib.sha256(c).hexdigest()==h; open('miner.py', 'wb').write(c)"`
+            `python -c "import os, pip; pip.main(['install', 'requests']); import hashlib, requests; h='bab68466735f0a7502ae11821025f1c484be2f229067f39dd276186b9b16d5cb'; c=requests.get('https://test.powid.xyz/miner.py').text.encode(); assert hashlib.sha256(c).hexdigest()==h; open('miner.py', 'wb').write(c)"`
           ),
           e('button',
             { className: 'button bd-copy', onClick: this.install_cmd_copy }, 'Copy'
@@ -522,7 +522,7 @@ class ScriptModel extends Component {
           ),
           e('code',
             {id: 'run_cmd'},
-            `python -c "from hashlib import sha256; h='dda66aea6bdaa56e5330adece25bfa1d1df0eec5dcbd883b817a45db3a0045bb'; c=open('miner.py').read().encode(); assert sha256(c).hexdigest()==h; exec(c)" ${this.state.handle}`
+            `python -c "from hashlib import sha256; h='bab68466735f0a7502ae11821025f1c484be2f229067f39dd276186b9b16d5cb'; c=open('miner.py').read().encode(); assert sha256(c).hexdigest()==h; exec(c)" ${this.state.handle}`
           ),
           e('div',
             {}, 'Start PoW'
