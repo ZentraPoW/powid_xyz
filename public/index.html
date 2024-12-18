@@ -266,7 +266,7 @@ class MetamaskConnect extends Component {
     return e('div', {},
       e('button',
         { onClick: this.login },
-        `${this.state.addr || 'Connect'}`
+        `${this.state.addr ? this.state.addr.slice(0, 12) +'...'+this.state.addr.slice(-10): 'Connect'}`
       ),
       e('div',
         { },

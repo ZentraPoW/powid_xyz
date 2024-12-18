@@ -153,10 +153,10 @@ class MetamaskConnect extends Component {
       const used = await whitelist_contract.whitelist_used(accounts[0]);
       console.log(used);
       if(used){
-        metamask_connect_this.setState({'msg': 'The whitelist registration opportunity has been used'});
+        metamask_connect_this.setState({'msg': 'Whitelist has been used'});
         return
       }
-      metamask_connect_this.setState({'msg': 'In whitelist and available for registration'});
+      metamask_connect_this.setState({'msg': 'Registration available in whitelist'});
 
       handle_reg_this.setState({'handle_input_readonly': false});
       handle_reg_box.style.display = 'block';
@@ -190,7 +190,7 @@ class MetamaskConnect extends Component {
     return e('div', {},
       e('button',
         { onClick: this.login },
-        `${this.state.addr || 'Connect'}`
+        `${this.state.addr ? this.state.addr.slice(0, 12) +'...'+this.state.addr.slice(-10): 'Connect'}`
       ),
       e('div',
         { },
