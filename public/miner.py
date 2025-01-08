@@ -49,9 +49,9 @@ while True:
         else:
             req = requests.get('%s/get_lottery?handle=%s' % (HOST, handle))
         lottery = req.json()
-        addr2 = lottery.get('addr', addr)
-        # print(addr2, addr)
-        # assert addr2.startswith('0x')
+        handle2addr = lottery.get('addr', addr)
+        print('Handle to addr', handle2addr, 'Addr', addr)
+        assert handle2addr.startswith('0x')
 
         # header = binascii.unhexlify('0000c0206373edd370dd69a39a72b54efa77cf1f9a371ca74dea02000000000000000000688c15b309e94ce0eea1c486336e10fcf0dc8f208a4ed1874dd0723023f5f9a2ad461366d362031732862496')
         # nonce = 0x96248631
@@ -62,13 +62,13 @@ while True:
             h_int = uint256_from_str(h)
 
             if lottery['available']:
-                p = hashlib.sha256(h+binascii.unhexlify(addr2[2:])).digest()
+                p = hashlib.sha256(h+binascii.unhexlify(handle2addr[2:])).digest()
                 p_int = int.from_bytes(p, 'big')
                 for amount in sorted([int(i) for i in lottery['difficulties'].keys()], reverse=True):
                     f_int = lottery['difficulties'][str(amount)]
                     if p_int < f_int:
                         print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Meet redeem difficulty', header.hex(), amount)
-                        req = requests.post('%s/redeem_lottery?preimage=%s&addr=%s&amount=%s' % (HOST, header.hex(), addr2, amount))
+                        req = requests.post('%s/redeem_lottery?preimage=%s&addr=%s&amount=%s' % (HOST, header.hex(), handle2addr, amount))
                         break
 
             if h_int < d_cur:
