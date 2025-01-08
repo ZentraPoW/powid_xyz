@@ -57,6 +57,23 @@ pre code {
   font-size: 1em;
   font-weight: var(--bulma-weight-semibold);
 }
+
+.styled-link {
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding for the button-like appearance */
+    text-align: center; /* Centered text */
+    text-decoration: none; /* No underline */
+    display: inline-block; /* Inline-block for better layout */
+    font-size: 18px; /* Font size */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    cursor: pointer; /* Hand cursor on hover */
+}
+
+.styled-link:hover {
+    background-color: #495057; /* Lighter dark gray on hover */
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
 </style>
 </head>
 <body>
@@ -64,7 +81,7 @@ pre code {
     <div class="container">
       <div class="navbar-brand">
         <a class="navbar-item" href="/">
-          PoWID.xyz
+          POWid.xyz
           <!-- <img src="../images/bulma.png" alt="Logo"> -->
         </a>
         <span class="navbar-burger burger" data-target="navbar_menu">
@@ -101,6 +118,8 @@ pre code {
           <hr class="login-hr">
           <p class="subtitle has-text-black">PoW contribution</p>
           <div id="handle_list" style="margin: 100px 0 0 0;"></div>
+          <br>
+          <a class="styled-link" href="/">Run PoW to get credits</a>
           <div id="contribution_list" style="margin: 100px 0 0 0;"></div>
         </div>
       </div>
@@ -194,7 +213,7 @@ class MetamaskConnect extends Component {
     return e('div', {},
       e('button',
         { onClick: this.login },
-        `${this.state.addr || 'Connect'}`
+        `${this.state.addr ? this.state.addr.slice(0, 12) +'...'+this.state.addr.slice(-10): 'Connect'}`
       ),
       e('div',
         { },
@@ -256,9 +275,9 @@ class HandleList extends Component {
     contribution_list_this.sync(e.target.innerText);
   }
 
-  async go_reg(e) {
-    location.href = '/';
-  }
+  // async go_reg(e) {
+  //   location.href = '/';
+  // }
 
   render() {
     const current_handle = window.location.hash.replace('#', '');
@@ -270,10 +289,9 @@ class HandleList extends Component {
       )
     })
     return e('div', {
-      style: {display: this.state.display},
-      className: 'box'
-    }, list,
-    e('a', {onClick: this.go_reg}, 'Run PoW to get credits'),
+        style: {display: this.state.display},
+        className: 'box'
+      }, list,
     );
   }
 }

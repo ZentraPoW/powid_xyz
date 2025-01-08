@@ -4,6 +4,7 @@ import hashlib
 import binascii
 import struct
 import datetime
+import time
 
 import requests
 
@@ -32,64 +33,63 @@ else:
     addr = None
 
 HOST = 'https://submit.powid.xyz'
+seconds_waiting = 2
 while True:
-    req = requests.get('%s/get_work?handle=%s' % (HOST, handle))
-    header_hex = req.text
-    print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Header', header_hex)
+    try:
+        req = requests.get('%s/get_work?handle=%s' % (HOST, handle))
+        header_hex = req.text
+        print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Header', header_hex)
 
-    nonce = 0
-    header = binascii.unhexlify(header_hex)
-    # d_int = diff1 // difficulty
-    d_cur = 0x00000f00ffff0000000000000000000000000000000000000000000000000000
+        nonce = 0
+        header = binascii.unhexlify(header_hex)
+        d_cur = 0x00000f00ffff0000000000000000000000000000000000000000000000000000
 
-    if addr:
-        req = requests.get('%s/get_lottery' % (HOST,))
-    else:
-        req = requests.get('%s/get_lottery?handle=%s' % (HOST, handle))
-    lottery = req.json()
-    addr2 = lottery.get('addr', addr)
-    # print(addr2, addr)
-    # assert addr2.startswith('0x')
+        if addr:
+            req = requests.get('%s/get_lottery' % (HOST,))
+        else:
+            req = requests.get('%s/get_lottery?handle=%s' % (HOST, handle))
+        lottery = req.json()
+        addr2 = lottery.get('addr', addr)
+        # print(addr2, addr)
+        # assert addr2.startswith('0x')
 
-    # header = binascii.unhexlify('0000c0206373edd370dd69a39a72b54efa77cf1f9a371ca74dea02000000000000000000688c15b309e94ce0eea1c486336e10fcf0dc8f208a4ed1874dd0723023f5f9a2ad461366d362031732862496')
-    # nonce = 0x96248631
-    while nonce <= 0xffffffff:
-        header = header[0:76] + nonce.to_bytes(4, byteorder='little')
-        # h = hashlib.sha256(hashlib.sha256(header).digest()).digest()[::-1]
-        h = hashlib.sha256(hashlib.sha256(header).digest()).digest()
-        h_int = uint256_from_str(h)
+        # header = binascii.unhexlify('0000c0206373edd370dd69a39a72b54efa77cf1f9a371ca74dea02000000000000000000688c15b309e94ce0eea1c486336e10fcf0dc8f208a4ed1874dd0723023f5f9a2ad461366d362031732862496')
+        # nonce = 0x96248631
+        while nonce <= 0xffffffff:
+            header = header[0:76] + nonce.to_bytes(4, byteorder='little')
+            # h = hashlib.sha256(hashlib.sha256(header).digest()).digest()[::-1]
+            h = hashlib.sha256(hashlib.sha256(header).digest()).digest()
+            h_int = uint256_from_str(h)
 
-        if lottery['available']:
-            p = hashlib.sha256(h+binascii.unhexlify(addr2[2:])).digest()
-            p_int = int.from_bytes(p, 'big')
-            for amount in sorted([int(i) for i in lottery['difficulties'].keys()], reverse=True):
-                f_int = lottery['difficulties'][str(amount)]
-                if p_int < f_int:
-                    print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Meet redeem difficulty', header.hex(), amount)
-                    req = requests.post('%s/redeem_lottery?preimage=%s&addr=%s&amount=%s' % (HOST, header.hex(), addr2, amount))
+            if lottery['available']:
+                p = hashlib.sha256(h+binascii.unhexlify(addr2[2:])).digest()
+                p_int = int.from_bytes(p, 'big')
+                for amount in sorted([int(i) for i in lottery['difficulties'].keys()], reverse=True):
+                    f_int = lottery['difficulties'][str(amount)]
+                    if p_int < f_int:
+                        print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Meet redeem difficulty', header.hex(), amount)
+                        req = requests.post('%s/redeem_lottery?preimage=%s&addr=%s&amount=%s' % (HOST, header.hex(), addr2, amount))
+                        break
+
+            if h_int < d_cur:
+                d_cur = h_int
+                req = requests.post('%s/submit_work?handle=%s&nonce=%s' % (HOST, handle, nonce))
+                print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Submit PoW', nonce)
+                if req.text != header_hex:
+                    print('New Block')
+                    print(req.text)
                     break
 
-        # print(h_int)
-        # print(d_int, h_int < d_int)
-        # if h_int < d_int:
-        #     print('result', h[::-1].hex(), nonce)
-        #     break
-        if h_int < d_cur:
-            d_cur = h_int
-            # print(h[::-1].hex())
-            # print(h_int, nonce)
-            req = requests.post('%s/submit_work?handle=%s&nonce=%s' % (HOST, handle, nonce))
-            print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Submit PoW', nonce)
-            if req.text != header_hex:
-                print('New Block')
-                print(req.text)
-                break
+            if nonce % 10000000 == 0 and nonce > 0:
+                req = requests.get('%s/get_work?handle=%s' % (HOST, handle))
+                print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Checking New', nonce)
+                if req.text != header_hex:
+                    print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'New Block')
+                    break
+            nonce += 1
+        seconds_waiting = 2
 
-        if nonce % 10000000 == 0 and nonce > 0:
-            req = requests.get('%s/get_work?handle=%s' % (HOST, handle))
-            print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Checking New', nonce)
-            if req.text != header_hex:
-                print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'New Block')
-                # print(req.text)
-                break
-        nonce += 1
+    except:
+        time.sleep(seconds_waiting)
+        print(datetime.datetime.now().strftime('%d/%m/%y %H:%M:%S'), 'Retry after %s seconds' % seconds_waiting)
+        seconds_waiting *= 2

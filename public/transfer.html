@@ -11,7 +11,7 @@
     <div class="container">
       <div class="navbar-brand">
         <a class="navbar-item" href="/">
-          PoWID.xyz
+          POWid.xyz
           <!-- <img src="../images/bulma.png" alt="Logo"> -->
         </a>
         <span class="navbar-burger burger" data-target="navbar_menu">
@@ -135,7 +135,7 @@ class MetamaskConnect extends Component {
     return e('div', {},
       e('button',
         { onClick: this.login },
-        `${this.state.addr || 'Connect'}`
+        `${this.state.addr ? this.state.addr.slice(0, 12) +'...'+this.state.addr.slice(-10): 'Connect'}`
       ),
       e('div',
         { },

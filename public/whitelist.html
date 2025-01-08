@@ -4,6 +4,22 @@
   <title>POWid</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.2/css/bulma.min.css">
 <style>
+.styled-link {
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding for the button-like appearance */
+    text-align: center; /* Centered text */
+    text-decoration: none; /* No underline */
+    display: inline-block; /* Inline-block for better layout */
+    font-size: 18px; /* Font size */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    cursor: pointer; /* Hand cursor on hover */
+}
+
+.styled-link:hover {
+    background-color: #495057; /* Lighter dark gray on hover */
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
 </style>
 </head>
 <body>
@@ -11,7 +27,7 @@
     <div class="container">
       <div class="navbar-brand">
         <a class="navbar-item" href="/">
-          PoWID.xyz
+          POWid.xyz
           <!-- <img src="../images/bulma.png" alt="Logo"> -->
         </a>
         <span class="navbar-burger burger" data-target="navbar_menu">
@@ -46,24 +62,28 @@
         <div class="column is-4 is-offset-4" style="min-width: 420px;">
           <h3 class="title has-text-black">POWid</h3>
           <hr class="login-hr">
-          <p class="subtitle has-text-black">Check if your address is eligible<br/> for claiming handle</p>
+          <p class="subtitle has-text-black">Check if your address <br/>is eligible for claiming handle</p>
           <div class="box">
             <div id="whitelist_search"></div>
           </div>
 
+          <p class="subtitle has-text-black">
+            Claim your handle with whitelist eligible
+            <br>
+            <span class="has-text-dark is-size-6">Must be more than 10 digits</span>
+          </p>
           <div class="box" id="handle_reg_box" style="display: none;">
             <!-- <figure class="avatar">
               <img src="https://via.placeholder.com/150">
             </figure> -->
             <div id="handle_reg"></div>
           </div>
-          <!-- <p class="has-text-grey">
-            <a href="../">Sign Up</a> &nbsp;·&nbsp;
-            <a href="../">Forgot Password</a> &nbsp;·&nbsp;
-            <a href="../">Need Help?</a>
-          </p> -->
           <div id="handle_list" style="margin: 100px 0 0 0;">
           </div>
+          <br>
+          <a class="styled-link" href="/invite.html">Create referral links</a>
+          <br>
+          <a class="styled-link" href="/">Run PoW to get credits</a>
         </div>
       </div>
     </div>
@@ -133,10 +153,10 @@ class MetamaskConnect extends Component {
       const used = await whitelist_contract.whitelist_used(accounts[0]);
       console.log(used);
       if(used){
-        metamask_connect_this.setState({'msg': 'The whitelist registration opportunity has been used'});
+        metamask_connect_this.setState({'msg': 'Whitelist has been used'});
         return
       }
-      metamask_connect_this.setState({'msg': 'In whitelist and available for registration'});
+      metamask_connect_this.setState({'msg': 'Registration available in whitelist'});
 
       handle_reg_this.setState({'handle_input_readonly': false});
       handle_reg_box.style.display = 'block';
@@ -170,7 +190,7 @@ class MetamaskConnect extends Component {
     return e('div', {},
       e('button',
         { onClick: this.login },
-        `${this.state.addr || 'Connect'}`
+        `${this.state.addr ? this.state.addr.slice(0, 12) +'...'+this.state.addr.slice(-10): 'Connect'}`
       ),
       e('div',
         { },
@@ -427,14 +447,6 @@ class HandleList extends Component {
     }
   }
 
-  async go_invite(e) {
-    location.href = '/invite.html';
-  }
-
-  async go_reg(e) {
-    location.href = '/';
-  }
-
   render() {
     const list = this.state.handles.map((i) =>{
       return e('div',
@@ -443,12 +455,9 @@ class HandleList extends Component {
       )
     })
     return e('div', {
-      style: {display: this.state.display},
-      className: 'box'
-    }, list,
-    e('a', {onClick: this.go_invite}, 'Create referral links'),
-    e('br', {}, null),
-    e('a', {onClick: this.go_reg}, 'Run PoW to get credits'),
+        style: {display: this.state.display},
+        className: 'box'
+      }, list,
     );
   }
 }
